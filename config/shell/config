@@ -197,14 +197,17 @@ if [ "$CURRENT_SHELL" = "zsh" ]; then
     autoload -U compinit
     compinit -u
     
-    # Function to auto-trigger completion after space
+    # Function to auto-trigger completion for certain commands
     function magic-space-auto-complete() {
         # Insert the space
         zle self-insert
-        # If we're at the beginning of a command argument, show completions
-        if [[ $LBUFFER =~ ^[[:alnum:]_\-\.\/]+[[:space:]]+$ ]] || [[ $LBUFFER =~ [[:space:]][[:alnum:]_\-\.\/]+[[:space:]]+$ ]]; then
-            zle menu-complete
-        fi
+        # Check if we just typed specific commands
+        local cmd=$(echo $LBUFFER | awk '{print $1}')
+        case "$cmd" in
+            cd|ls|cat|vim|nvim|rm|cp|mv)
+                zle menu-complete
+                ;;
+        esac
     }
     zle -N magic-space-auto-complete
     bindkey ' ' magic-space-auto-complete
