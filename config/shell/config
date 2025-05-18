@@ -124,6 +124,9 @@ if [ "$CURRENT_SHELL" = "zsh" ]; then
     # Enable completion
     autoload -Uz compinit && compinit
     
+    # Load necessary modules for menu selection
+    zmodload zsh/complist
+    
     # oh-my-zsh style completion settings
     zstyle ':completion:*' menu select
     zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
@@ -189,6 +192,36 @@ if [ "$CURRENT_SHELL" = "zsh" ]; then
     # Tab completion behavior
     bindkey '^I' menu-complete
     bindkey '^[[Z' reverse-menu-complete
+    
+    # Auto-show completions after space for all commands
+    autoload -U compinit
+    compinit -u
+    
+    # Function to auto-trigger completion after space
+    function magic-space-auto-complete() {
+        # Insert the space
+        zle self-insert
+        # If we're at the beginning of a command argument, show completions
+        if [[ $LBUFFER =~ ^[[:alnum:]_\-\.\/]+[[:space:]]+$ ]] || [[ $LBUFFER =~ [[:space:]][[:alnum:]_\-\.\/]+[[:space:]]+$ ]]; then
+            zle menu-complete
+        fi
+    }
+    zle -N magic-space-auto-complete
+    bindkey ' ' magic-space-auto-complete
+    
+    # Show menu immediately with single tab
+    setopt NO_LIST_BEEP
+    setopt LIST_PACKED
+    setopt AUTO_MENU
+    setopt NO_MENU_COMPLETE  # Change to use AUTO_MENU instead
+    
+    # Automatically list choices on ambiguous completion
+    setopt AUTO_LIST
+    setopt LIST_AMBIGUOUS
+    
+    # Show completions after typing without needing tab
+    setopt COMPLETE_IN_WORD
+    setopt ALWAYS_TO_END
     
     # Enhanced prompt with git info
     autoload -Uz vcs_info
@@ -267,6 +300,22 @@ if [ "$CURRENT_SHELL" = "zsh" ]; then
     zle -N predict-off
     bindkey '^X^Z' predict-on
     bindkey '^Z' predict-off
+    
+    # Auto-list directories after typing cd
+    compdef _directories cd
+    
+    # Show completion menu automatically after typing certain commands
+    zstyle ':completion:*' insert-tab false
+    zstyle ':completion:*' list-separator ' => '
+    
+    # Automatically show completions for cd, ls, etc.
+    zstyle ':completion:*' show-completer true
+    zstyle ':completion:*' verbose true
+    
+    # Enhanced directory completion
+    zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
+    zstyle ':completion:*:cd:*' special-dirs true
+    zstyle ':completion:*:cd:*' list-dirs-first true
     
 elif [ "$CURRENT_SHELL" = "bash" ]; then
     # Bash specific settings
