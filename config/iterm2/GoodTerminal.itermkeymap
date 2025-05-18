@@ -1,0 +1,25 @@
+{
+  "Touch Bar Items": [],
+  "Key Mappings": {
+    "0xf703-0x100000": {
+      "Label": "Cmd+Right to backtick+n",
+      "Action": 12,
+      "Text": "`n"
+    },
+    "0xf702-0x100000": {
+      "Label": "Cmd+Left to backtick+p", 
+      "Action": 12,
+      "Text": "`p"
+    },
+    "0x74-0x100000": {
+      "Label": "Cmd+T to backtick+t",
+      "Action": 12,
+      "Text": "`t"
+    },
+    "0x77-0x100000": {
+      "Label": "Cmd+W to backtick+&",
+      "Action": 12,
+      "Text": "`&"
+    }
+  }
+}

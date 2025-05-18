@@ -13,6 +13,10 @@
 - `` ` ,``: Rename current window
 - `` ` &``: Kill current window (will prompt)
 - `Shift+Left/Right`: Previous/next window (no prefix needed)
+- `Cmd+Right` (Mac): Next window (configure terminal to map Cmd to Alt)
+- `Cmd+Left` (Mac): Previous window (configure terminal to map Cmd to Alt)
+- `Cmd+T` (Mac): Create new window (configure terminal to map Cmd to Alt)
+- `Cmd+W` (Mac): Kill current window (configure terminal to map Cmd to Alt)
 
 ### Panes (Splits)
 - `` ` |``: Split vertically (new pane on right)
