@@ -49,6 +49,7 @@
 - `` ` I``: Install plugins (via TPM)
 - `` ` U``: Update plugins
 - `` ` `` ` ``: Send literal backtick
+- `` ` Enter``: Send a newline in Claude Code
 
 ## Neovim
 

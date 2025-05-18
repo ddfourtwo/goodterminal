@@ -750,10 +750,21 @@ purge_and_reinstall() {
     rm -rf ~/.cache/nvim
     rm -rf ~/.config/nvim/lazy-lock.json
     
-    # Remove symbolic links
+    # Remove symbolic links and directories
     log_info "Removing configuration links..."
     rm -f ~/.tmux.conf
-    rm -f ~/.config/nvim
+    
+    # Check if ~/.config/nvim is a symlink, file, or directory and remove appropriately
+    if [ -L ~/.config/nvim ]; then
+        # It's a symbolic link
+        rm -f ~/.config/nvim
+    elif [ -d ~/.config/nvim ]; then
+        # It's a directory
+        rm -rf ~/.config/nvim
+    elif [ -f ~/.config/nvim ]; then
+        # It's a regular file
+        rm -f ~/.config/nvim
+    fi
     
     # Remove shell configuration entries
     log_info "Cleaning shell profile..."
