@@ -32,3 +32,19 @@ Thumbs.db
 # Temp files
 *.tmp
 *.temp
+
+# Added by Claude Task Master
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+# Environment variables
+.env
+# MCP configuration
+.mcp.json
+# OS specific
+# Task files
+tasks.json
+tasks/ 
