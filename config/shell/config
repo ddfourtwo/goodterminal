@@ -129,10 +129,16 @@ if [ "$CURRENT_SHELL" = "zsh" ]; then
     zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
     zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
     zstyle ':completion:*' group-name ''
-    zstyle ':completion:*:descriptions' format '%B%d%b'
-    zstyle ':completion:*:messages' format '%d'
-    zstyle ':completion:*:warnings' format 'No matches for: %d'
-    zstyle ':completion:*:corrections' format '%B%d (errors: %e)%b'
+    zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+    zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
+    zstyle ':completion:*:warnings' format '%F{red}-- No matches for: %d --%f'
+    zstyle ':completion:*:corrections' format '%F{green}-- %d (errors: %e) --%f'
+    
+    # Visual completion menu styling
+    zstyle ':completion:*' menu select=2
+    zstyle ':completion:*:*:*:*:*' menu yes
+    zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
+    zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
     
     # Completion for kill command
     zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
@@ -173,6 +179,16 @@ if [ "$CURRENT_SHELL" = "zsh" ]; then
     bindkey '\e[1;3C' forward-word
     bindkey '^[b' backward-word
     bindkey '^[f' forward-word
+    
+    # Enable menu navigation with arrow keys
+    bindkey -M menuselect '^[[A' up-line-or-history
+    bindkey -M menuselect '^[[B' down-line-or-history
+    bindkey -M menuselect '^[[C' forward-char
+    bindkey -M menuselect '^[[D' backward-char
+    
+    # Tab completion behavior
+    bindkey '^I' menu-complete
+    bindkey '^[[Z' reverse-menu-complete
     
     # Enhanced prompt with git info
     autoload -Uz vcs_info
@@ -244,6 +260,13 @@ if [ "$CURRENT_SHELL" = "zsh" ]; then
     setopt LIST_AMBIGUOUS
     setopt LIST_PACKED
     setopt MENU_COMPLETE
+    
+    # Simple autosuggestion from history
+    autoload -Uz predict-on
+    zle -N predict-on
+    zle -N predict-off
+    bindkey '^X^Z' predict-on
+    bindkey '^Z' predict-off
     
 elif [ "$CURRENT_SHELL" = "bash" ]; then
     # Bash specific settings
