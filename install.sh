@@ -102,16 +102,57 @@ wait_for_apt() {
     local max_wait=300  # 5 minutes
     local wait_time=0
     
-    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+    while true; do
+        # Check for all possible apt locks
+        if ! fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 && \
+           ! fuser /var/lib/dpkg/lock >/dev/null 2>&1 && \
+           ! fuser /var/cache/apt/archives/lock >/dev/null 2>&1 && \
+           ! fuser /var/lib/apt/lists/lock >/dev/null 2>&1; then
+            # No locks detected, we can proceed
+            return 0
+        fi
+        
         if [ $wait_time -ge $max_wait ]; then
             log_error "Apt lock not released after $max_wait seconds"
+            # Show which processes are holding the locks
+            log_info "Processes holding apt locks:"
+            fuser -v /var/lib/dpkg/lock-frontend 2>&1 || true
+            fuser -v /var/lib/dpkg/lock 2>&1 || true
             return 1
         fi
+        
         log_info "Waiting for apt lock to be released... ($wait_time/$max_wait seconds)"
         sleep 5
         wait_time=$((wait_time + 5))
     done
-    return 0
+}
+
+# Run apt command with lock waiting
+run_apt_command() {
+    local cmd="$1"
+    shift
+    local args="$@"
+    
+    # Disable exit on error temporarily
+    local old_e
+    [[ $- == *e* ]] && old_e=1 || old_e=0
+    set +e
+    
+    # Try the command first
+    $cmd $args
+    local result=$?
+    
+    # If it failed due to lock, wait and retry
+    if [ $result -ne 0 ]; then
+        wait_for_apt
+        $cmd $args
+        result=$?
+    fi
+    
+    # Re-enable exit on error if it was enabled
+    [ $old_e -eq 1 ] && set -e
+    
+    return $result
 }
 
 # Install dependencies
@@ -122,10 +163,8 @@ install_dependencies() {
     local deps="curl git wget build-essential"
     
     if [[ "$OS" == "debian" ]]; then
-        wait_for_apt
-        sudo $PKG_UPDATE
-        wait_for_apt
-        sudo $PKG_INSTALL $deps software-properties-common zsh fzf
+        run_apt_command sudo $PKG_UPDATE
+        run_apt_command sudo $PKG_INSTALL $deps software-properties-common zsh fzf
     elif [[ "$OS" == "rhel" ]]; then
         sudo $PKG_UPDATE
         sudo $PKG_INSTALL $deps zsh fzf
@@ -146,8 +185,7 @@ install_mosh() {
     log_info "Installing mosh..."
     
     if [[ "$OS" == "debian" ]]; then
-        wait_for_apt
-        sudo $PKG_INSTALL mosh
+        run_apt_command sudo $PKG_INSTALL mosh
     elif [[ "$OS" == "rhel" ]] || [[ "$OS" == "arch" ]]; then
         sudo $PKG_INSTALL mosh
     elif [[ "$OS" == "macos" ]]; then
@@ -194,8 +232,7 @@ install_tmux() {
     
     if [[ "$OS" == "debian" ]]; then
         # Install latest tmux from source on Debian/Ubuntu
-        wait_for_apt
-        sudo $PKG_INSTALL libevent-dev ncurses-dev build-essential bison pkg-config automake
+        run_apt_command sudo $PKG_INSTALL libevent-dev ncurses-dev build-essential bison pkg-config automake
         
         TMUX_VERSION="3.4"
         cd /tmp
@@ -228,12 +265,9 @@ install_nvim() {
     
     if [[ "$OS" == "debian" ]]; then
         # Install latest neovim from official repository
-        wait_for_apt
         sudo add-apt-repository ppa:neovim-ppa/unstable -y
-        wait_for_apt
-        sudo apt-get update
-        wait_for_apt
-        sudo $PKG_INSTALL neovim
+        run_apt_command sudo apt-get update
+        run_apt_command sudo $PKG_INSTALL neovim
     elif [[ "$OS" == "rhel" ]]; then
         # Install from EPEL
         sudo yum install -y epel-release
@@ -251,9 +285,10 @@ install_nvim() {
     if ! command -v curl &> /dev/null; then
         log_info "Installing curl..."
         if [[ "$OS" == "debian" ]]; then
-            wait_for_apt
+            run_apt_command sudo $PKG_INSTALL curl
+        else
+            sudo $PKG_INSTALL curl
         fi
-        sudo $PKG_INSTALL curl
     fi
     
     # Node.js for LSP servers and CLI tools
@@ -271,8 +306,7 @@ install_nvim() {
             log_warning "Consider using nvm for better Node version management"
             if [[ "$OS" == "debian" ]]; then
                 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-                wait_for_apt
-                sudo $PKG_INSTALL nodejs
+                run_apt_command sudo $PKG_INSTALL nodejs
             elif [[ "$OS" == "rhel" ]]; then
                 curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
                 sudo $PKG_INSTALL nodejs
@@ -315,17 +349,17 @@ install_nvim() {
     if ! command -v python3 &> /dev/null; then
         log_info "Installing Python..."
         if [[ "$OS" == "debian" ]]; then
-            wait_for_apt
+            run_apt_command sudo $PKG_INSTALL python3 python3-pip
+        else
+            sudo $PKG_INSTALL python3 python3-pip
         fi
-        sudo $PKG_INSTALL python3 python3-pip
     fi
     
     # Ripgrep for better searching
     if ! command -v rg &> /dev/null; then
         log_info "Installing ripgrep..."
         if [[ "$OS" == "debian" ]]; then
-            wait_for_apt
-            sudo $PKG_INSTALL ripgrep
+            run_apt_command sudo $PKG_INSTALL ripgrep
         elif [[ "$OS" == "rhel" ]] || [[ "$OS" == "arch" ]]; then
             sudo $PKG_INSTALL ripgrep
         elif [[ "$OS" == "macos" ]]; then
