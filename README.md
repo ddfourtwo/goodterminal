@@ -95,7 +95,10 @@ claude help            # View available commands
 - Cleanup utilities
 
 ### Shell Configuration
-- Oh-my-zsh style autocomplete for zsh with:
+- Oh-my-zsh style features using popular plugins:
+  - **zsh-autosuggestions**: Gray text predictions as you type (press Ctrl+Right to accept)
+  - **zsh-syntax-highlighting**: Real-time syntax highlighting of commands
+  - **zsh-completions**: Additional completion definitions
   - Menu-based completion with arrow key navigation
   - Case-insensitive and fuzzy matching
   - Git-aware prompt with status indicators

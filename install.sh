@@ -283,6 +283,30 @@ configure_installations() {
     # Shell configuration (source in shell profile)
     log_info "Setting up shell configuration..."
     
+    # Install zsh plugins for oh-my-zsh style features
+    if command -v zsh &> /dev/null; then
+        log_info "Installing zsh plugins..."
+        mkdir -p "$HOME/.config/zsh/plugins"
+        
+        # Install zsh-autosuggestions
+        if [ ! -d "$HOME/.config/zsh/plugins/zsh-autosuggestions" ]; then
+            log_info "Installing zsh-autosuggestions..."
+            git clone https://github.com/zsh-users/zsh-autosuggestions "$HOME/.config/zsh/plugins/zsh-autosuggestions"
+        fi
+        
+        # Install zsh-syntax-highlighting
+        if [ ! -d "$HOME/.config/zsh/plugins/zsh-syntax-highlighting" ]; then
+            log_info "Installing zsh-syntax-highlighting..."
+            git clone https://github.com/zsh-users/zsh-syntax-highlighting "$HOME/.config/zsh/plugins/zsh-syntax-highlighting"
+        fi
+        
+        # Install zsh-completions
+        if [ ! -d "$HOME/.config/zsh/plugins/zsh-completions" ]; then
+            log_info "Installing zsh-completions..."
+            git clone https://github.com/zsh-users/zsh-completions "$HOME/.config/zsh/plugins/zsh-completions"
+        fi
+    fi
+    
     # Determine shell profile file
     SHELL_PROFILE=""
     if [ -f "$HOME/.zshrc" ]; then
@@ -333,6 +357,26 @@ configure_installations() {
 # Update plugins
 update_plugins() {
     log_info "Updating plugins..."
+    
+    # Update zsh plugins
+    if command -v zsh &> /dev/null && [ -d "$HOME/.config/zsh/plugins" ]; then
+        log_info "Updating zsh plugins..."
+        
+        # Update zsh-autosuggestions
+        if [ -d "$HOME/.config/zsh/plugins/zsh-autosuggestions" ]; then
+            cd "$HOME/.config/zsh/plugins/zsh-autosuggestions" && git pull
+        fi
+        
+        # Update zsh-syntax-highlighting
+        if [ -d "$HOME/.config/zsh/plugins/zsh-syntax-highlighting" ]; then
+            cd "$HOME/.config/zsh/plugins/zsh-syntax-highlighting" && git pull
+        fi
+        
+        # Update zsh-completions
+        if [ -d "$HOME/.config/zsh/plugins/zsh-completions" ]; then
+            cd "$HOME/.config/zsh/plugins/zsh-completions" && git pull
+        fi
+    fi
     
     # Update tmux plugins
     log_info "Updating tmux plugins..."
@@ -561,9 +605,10 @@ show_menu() {
     echo "4) Update everything (configs, plugins, and packages)"
     echo "5) Check health status"
     echo "6) Purge and reinstall (clean slate)"
-    echo "7) Exit"
+    echo "7) Install oh-my-zsh (recommended for best shell experience)"
+    echo "8) Exit"
     echo
-    log_prompt "Select an option (1-7): "
+    log_prompt "Select an option (1-8): "
 }
 
 # Main function
@@ -606,11 +651,16 @@ main() {
                     break
                     ;;
                 7)
+                    log_info "Installing oh-my-zsh..."
+                    "$SCRIPT_DIR/install_omz.sh"
+                    break
+                    ;;
+                8)
                     log_info "Exiting..."
                     exit 0
                     ;;
                 *)
-                    log_error "Invalid option. Please select 1-7."
+                    log_error "Invalid option. Please select 1-8."
                     ;;
             esac
         done

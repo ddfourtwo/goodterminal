@@ -121,11 +121,36 @@ extract() {
 if [ "$CURRENT_SHELL" = "zsh" ]; then
     # ZSH specific settings - oh-my-zsh style configuration
     
-    # Enable completion
-    autoload -Uz compinit && compinit
-    
     # Load necessary modules for menu selection
     zmodload zsh/complist
+    
+    # Load oh-my-zsh style plugins
+    if [ -d ~/.config/zsh/plugins ]; then
+        # Add zsh-completions to fpath before compinit
+        fpath=(~/.config/zsh/plugins/zsh-completions/src $fpath)
+        
+        # Enable completion after updating fpath
+        autoload -Uz compinit && compinit
+        
+        # Load zsh-autosuggestions (gray text predictions)
+        if [ -f ~/.config/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
+            source ~/.config/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+            # Configure autosuggestions
+            ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'
+            ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+            bindkey '^→' autosuggest-accept  # Ctrl+Right to accept suggestion
+            bindkey '^[[1;5C' autosuggest-accept  # Ctrl+Right (alternative)
+            bindkey '^[f' autosuggest-accept   # Alt+f to accept suggestion
+        fi
+        
+        # Load zsh-syntax-highlighting (colored commands)
+        if [ -f ~/.config/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+            source ~/.config/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+        fi
+    else
+        # Fallback if plugins aren't installed
+        autoload -Uz compinit && compinit
+    fi
     
     # oh-my-zsh style completion settings
     zstyle ':completion:*' menu select
@@ -189,40 +214,10 @@ if [ "$CURRENT_SHELL" = "zsh" ]; then
     bindkey -M menuselect '^[[C' forward-char
     bindkey -M menuselect '^[[D' backward-char
     
-    # Tab completion behavior
-    bindkey '^I' menu-complete
-    bindkey '^[[Z' reverse-menu-complete
-    
-    # Auto-show completions after space for all commands
-    autoload -U compinit
-    compinit -u
-    
-    # Function to auto-trigger completion for certain commands
-    function magic-space-auto-complete() {
-        # Insert the space
-        zle self-insert
-        # Check if we just typed specific commands
-        local cmd=$(echo $LBUFFER | awk '{print $1}')
-        case "$cmd" in
-            cd|ls|cat|vim|nvim|rm|cp|mv)
-                zle menu-complete
-                ;;
-        esac
-    }
-    zle -N magic-space-auto-complete
-    bindkey ' ' magic-space-auto-complete
-    
-    # Show menu immediately with single tab
+    # Simple tab completion behavior
     setopt NO_LIST_BEEP
-    setopt LIST_PACKED
     setopt AUTO_MENU
-    setopt NO_MENU_COMPLETE  # Change to use AUTO_MENU instead
-    
-    # Automatically list choices on ambiguous completion
     setopt AUTO_LIST
-    setopt LIST_AMBIGUOUS
-    
-    # Show completions after typing without needing tab
     setopt COMPLETE_IN_WORD
     setopt ALWAYS_TO_END
     
@@ -297,28 +292,6 @@ if [ "$CURRENT_SHELL" = "zsh" ]; then
     setopt LIST_PACKED
     setopt MENU_COMPLETE
     
-    # Simple autosuggestion from history
-    autoload -Uz predict-on
-    zle -N predict-on
-    zle -N predict-off
-    bindkey '^X^Z' predict-on
-    bindkey '^Z' predict-off
-    
-    # Auto-list directories after typing cd
-    compdef _directories cd
-    
-    # Show completion menu automatically after typing certain commands
-    zstyle ':completion:*' insert-tab false
-    zstyle ':completion:*' list-separator ' => '
-    
-    # Automatically show completions for cd, ls, etc.
-    zstyle ':completion:*' show-completer true
-    zstyle ':completion:*' verbose true
-    
-    # Enhanced directory completion
-    zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
-    zstyle ':completion:*:cd:*' special-dirs true
-    zstyle ':completion:*:cd:*' list-dirs-first true
     
 elif [ "$CURRENT_SHELL" = "bash" ]; then
     # Bash specific settings
