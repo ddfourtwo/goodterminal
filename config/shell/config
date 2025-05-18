@@ -155,8 +155,8 @@ if [ "$CURRENT_SHELL" = "zsh" ]; then
     autoload -Uz bashcompinit && bashcompinit
     
     # Better key bindings
-    bindkey '^[[A' history-substring-search-up
-    bindkey '^[[B' history-substring-search-down
+    bindkey '^[[A' history-beginning-search-backward
+    bindkey '^[[B' history-beginning-search-forward
     bindkey '^A' beginning-of-line
     bindkey '^E' end-of-line
     bindkey '^K' kill-line
@@ -173,10 +173,6 @@ if [ "$CURRENT_SHELL" = "zsh" ]; then
     bindkey '\e[1;3C' forward-word
     bindkey '^[b' backward-word
     bindkey '^[f' forward-word
-    
-    # Enable history substring search
-    autoload -Uz history-substring-search-up
-    autoload -Uz history-substring-search-down
     
     # Enhanced prompt with git info
     autoload -Uz vcs_info
