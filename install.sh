@@ -280,57 +280,103 @@ configure_installations() {
     fi
     ln -sf "$SCRIPT_DIR/config/tmux/tmux.conf" "$HOME/.tmux.conf"
     
-    # Shell configuration (source in shell profile)
-    log_info "Setting up shell configuration..."
+    # Shell configuration with oh-my-zsh
+    log_info "Setting up shell configuration with oh-my-zsh..."
     
-    # Install zsh plugins for oh-my-zsh style features
+    # Install oh-my-zsh if not already installed
     if command -v zsh &> /dev/null; then
-        log_info "Installing zsh plugins..."
-        mkdir -p "$HOME/.config/zsh/plugins"
-        
-        # Install zsh-autosuggestions
-        if [ ! -d "$HOME/.config/zsh/plugins/zsh-autosuggestions" ]; then
-            log_info "Installing zsh-autosuggestions..."
-            git clone https://github.com/zsh-users/zsh-autosuggestions "$HOME/.config/zsh/plugins/zsh-autosuggestions"
+        if [ ! -d "$HOME/.oh-my-zsh" ]; then
+            log_info "Installing oh-my-zsh..."
+            sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
         fi
         
-        # Install zsh-syntax-highlighting
-        if [ ! -d "$HOME/.config/zsh/plugins/zsh-syntax-highlighting" ]; then
-            log_info "Installing zsh-syntax-highlighting..."
-            git clone https://github.com/zsh-users/zsh-syntax-highlighting "$HOME/.config/zsh/plugins/zsh-syntax-highlighting"
+        # Install additional plugins
+        log_info "Installing oh-my-zsh plugins..."
+        
+        # zsh-autosuggestions
+        if [ ! -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]; then
+            git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
         fi
         
-        # Install zsh-completions
-        if [ ! -d "$HOME/.config/zsh/plugins/zsh-completions" ]; then
-            log_info "Installing zsh-completions..."
-            git clone https://github.com/zsh-users/zsh-completions "$HOME/.config/zsh/plugins/zsh-completions"
+        # zsh-syntax-highlighting
+        if [ ! -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" ]; then
+            git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+        fi
+        
+        # Configure oh-my-zsh settings
+        if [ -f "$HOME/.zshrc" ]; then
+            log_info "Integrating GoodTerminal settings into existing .zshrc..."
+            
+            # Check if our configuration is already present
+            if ! grep -q "GoodTerminal configuration" "$HOME/.zshrc"; then
+                # Backup existing .zshrc
+                cp "$HOME/.zshrc" "$HOME/.zshrc.backup-$(date +%Y%m%d-%H%M%S)"
+                
+                # Add our plugins to the existing plugins list
+                if grep -q "^plugins=" "$HOME/.zshrc"; then
+                    # Extract existing plugins
+                    existing_plugins=$(grep "^plugins=" "$HOME/.zshrc" | sed 's/plugins=(\(.*\))/\1/')
+                    # Add our required plugins
+                    our_plugins="zsh-autosuggestions zsh-syntax-highlighting"
+                    for plugin in $our_plugins; do
+                        if ! echo "$existing_plugins" | grep -q "$plugin"; then
+                            existing_plugins="$existing_plugins $plugin"
+                        fi
+                    done
+                    # Update the plugins line
+                    sed -i.tmp "s/^plugins=.*/plugins=($existing_plugins)/" "$HOME/.zshrc"
+                    rm -f "$HOME/.zshrc.tmp"
+                else
+                    # Add plugins line if it doesn't exist
+                    echo "" >> "$HOME/.zshrc"
+                    echo "# Plugins" >> "$HOME/.zshrc"
+                    echo "plugins=(git zsh-autosuggestions zsh-syntax-highlighting)" >> "$HOME/.zshrc"
+                fi
+                
+                # Add our configuration block
+                echo "" >> "$HOME/.zshrc"
+                echo "# GoodTerminal configuration" >> "$HOME/.zshrc"
+                echo "# Plugin configuration" >> "$HOME/.zshrc"
+                echo "ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'" >> "$HOME/.zshrc"
+                echo "ZSH_AUTOSUGGEST_STRATEGY=(history completion)" >> "$HOME/.zshrc"
+                echo "" >> "$HOME/.zshrc"
+                echo "# Key bindings" >> "$HOME/.zshrc"
+                echo "bindkey '^[[1;5C' autosuggest-accept  # Ctrl+Right to accept" >> "$HOME/.zshrc"
+                echo "bindkey '^[f' autosuggest-accept      # Alt+f to accept" >> "$HOME/.zshrc"
+                echo "" >> "$HOME/.zshrc"
+                echo "# Load GoodTerminal configurations" >> "$HOME/.zshrc"
+                echo "[ -f \"$SCRIPT_DIR/config/shell/config\" ] && source \"$SCRIPT_DIR/config/shell/config\"" >> "$HOME/.zshrc"
+                echo "[ -f \"$SCRIPT_DIR/config/mosh/config\" ] && source \"$SCRIPT_DIR/config/mosh/config\"" >> "$HOME/.zshrc"
+                
+                log_info "Added GoodTerminal configuration to existing .zshrc"
+            else
+                log_info "GoodTerminal configuration already present in .zshrc"
+            fi
+        else
+            # No existing .zshrc, create from our template
+            log_info "Creating new .zshrc with GoodTerminal settings..."
+            sed "s|__SCRIPT_DIR__|$SCRIPT_DIR|g" "$SCRIPT_DIR/config/shell/zshrc.template" > "$HOME/.zshrc"
         fi
     fi
     
-    # Determine shell profile file
-    SHELL_PROFILE=""
-    if [ -f "$HOME/.zshrc" ]; then
-        SHELL_PROFILE="$HOME/.zshrc"
-    elif [ -f "$HOME/.bashrc" ]; then
+    # For bash users, add basic configuration
+    if [ -f "$HOME/.bashrc" ]; then
         SHELL_PROFILE="$HOME/.bashrc"
-    else
-        SHELL_PROFILE="$HOME/.profile"
-    fi
-    
-    # Add shell configuration sourcing if not already present
-    if ! grep -q "goodterminal/config/shell/config" "$SHELL_PROFILE"; then
-        log_info "Adding shell configuration to $SHELL_PROFILE"
-        echo "" >> "$SHELL_PROFILE"
-        echo "# GoodTerminal shell configuration" >> "$SHELL_PROFILE"
-        echo "[ -f \"$SCRIPT_DIR/config/shell/config\" ] && source \"$SCRIPT_DIR/config/shell/config\"" >> "$SHELL_PROFILE"
-    fi
-    
-    # Add mosh configuration sourcing if not already present
-    if ! grep -q "goodterminal/config/mosh/config" "$SHELL_PROFILE"; then
-        log_info "Adding mosh configuration to $SHELL_PROFILE"
-        echo "" >> "$SHELL_PROFILE"
-        echo "# GoodTerminal mosh configuration" >> "$SHELL_PROFILE"
-        echo "[ -f \"$SCRIPT_DIR/config/mosh/config\" ] && source \"$SCRIPT_DIR/config/mosh/config\"" >> "$SHELL_PROFILE"
+        # Add shell configuration sourcing if not already present
+        if ! grep -q "goodterminal/config/shell/config" "$SHELL_PROFILE"; then
+            log_info "Adding shell configuration to $SHELL_PROFILE"
+            echo "" >> "$SHELL_PROFILE"
+            echo "# GoodTerminal shell configuration" >> "$SHELL_PROFILE"
+            echo "[ -f \"$SCRIPT_DIR/config/shell/config\" ] && source \"$SCRIPT_DIR/config/shell/config\"" >> "$SHELL_PROFILE"
+        fi
+        
+        # Add mosh configuration sourcing if not already present
+        if ! grep -q "goodterminal/config/mosh/config" "$SHELL_PROFILE"; then
+            log_info "Adding mosh configuration to $SHELL_PROFILE"
+            echo "" >> "$SHELL_PROFILE"
+            echo "# GoodTerminal mosh configuration" >> "$SHELL_PROFILE"
+            echo "[ -f \"$SCRIPT_DIR/config/mosh/config\" ] && source \"$SCRIPT_DIR/config/mosh/config\"" >> "$SHELL_PROFILE"
+        fi
     fi
     
     # Optionally set zsh as default shell
@@ -358,23 +404,20 @@ configure_installations() {
 update_plugins() {
     log_info "Updating plugins..."
     
-    # Update zsh plugins
-    if command -v zsh &> /dev/null && [ -d "$HOME/.config/zsh/plugins" ]; then
-        log_info "Updating zsh plugins..."
+    # Update oh-my-zsh and plugins
+    if command -v zsh &> /dev/null && [ -d "$HOME/.oh-my-zsh" ]; then
+        log_info "Updating oh-my-zsh and plugins..."
         
-        # Update zsh-autosuggestions
-        if [ -d "$HOME/.config/zsh/plugins/zsh-autosuggestions" ]; then
-            cd "$HOME/.config/zsh/plugins/zsh-autosuggestions" && git pull
+        # Update oh-my-zsh
+        zsh -c "source $HOME/.zshrc && omz update --unattended" || true
+        
+        # Update custom plugins
+        if [ -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]; then
+            cd "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" && git pull
         fi
         
-        # Update zsh-syntax-highlighting
-        if [ -d "$HOME/.config/zsh/plugins/zsh-syntax-highlighting" ]; then
-            cd "$HOME/.config/zsh/plugins/zsh-syntax-highlighting" && git pull
-        fi
-        
-        # Update zsh-completions
-        if [ -d "$HOME/.config/zsh/plugins/zsh-completions" ]; then
-            cd "$HOME/.config/zsh/plugins/zsh-completions" && git pull
+        if [ -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" ]; then
+            cd "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" && git pull
         fi
     fi
     
@@ -581,12 +624,29 @@ purge_and_reinstall() {
     # Remove shell configuration entries
     log_info "Cleaning shell profile..."
     if [ -f "$HOME/.zshrc" ]; then
-        sed -i.bak '/# GoodTerminal shell configuration/,+2d' "$HOME/.zshrc"
-        sed -i.bak '/# GoodTerminal mosh configuration/,+2d' "$HOME/.zshrc"
+        # Create backup before modifying
+        cp "$HOME/.zshrc" "$HOME/.zshrc.goodterminal-purge-backup"
+        
+        # Remove our configuration block
+        sed -i.bak '/# GoodTerminal configuration/,/^$/d' "$HOME/.zshrc"
+        
+        # Remove individual source lines if they exist
+        sed -i.bak '/goodterminal\/config\/shell\/config/d' "$HOME/.zshrc"
+        sed -i.bak '/goodterminal\/config\/mosh\/config/d' "$HOME/.zshrc"
+        
+        # Remove our plugin configurations
+        sed -i.bak '/ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE=/d' "$HOME/.zshrc"
+        sed -i.bak '/ZSH_AUTOSUGGEST_STRATEGY=/d' "$HOME/.zshrc"
+        
+        # Clean up backup files
+        rm -f "$HOME/.zshrc.bak"
+        
+        log_info "Backed up .zshrc to .zshrc.goodterminal-purge-backup"
     fi
+    
     if [ -f "$HOME/.bashrc" ]; then
-        sed -i.bak '/# GoodTerminal shell configuration/,+2d' "$HOME/.bashrc"
-        sed -i.bak '/# GoodTerminal mosh configuration/,+2d' "$HOME/.bashrc"
+        sed -i.bak '/# GoodTerminal/,/^$/d' "$HOME/.bashrc"
+        rm -f "$HOME/.bashrc.bak"
     fi
     
     log_info "Purge complete. Starting fresh installation..."
@@ -605,10 +665,9 @@ show_menu() {
     echo "4) Update everything (configs, plugins, and packages)"
     echo "5) Check health status"
     echo "6) Purge and reinstall (clean slate)"
-    echo "7) Install oh-my-zsh (recommended for best shell experience)"
-    echo "8) Exit"
+    echo "7) Exit"
     echo
-    log_prompt "Select an option (1-8): "
+    log_prompt "Select an option (1-7): "
 }
 
 # Main function
@@ -651,16 +710,11 @@ main() {
                     break
                     ;;
                 7)
-                    log_info "Installing oh-my-zsh..."
-                    "$SCRIPT_DIR/install_omz.sh"
-                    break
-                    ;;
-                8)
                     log_info "Exiting..."
                     exit 0
                     ;;
                 *)
-                    log_error "Invalid option. Please select 1-8."
+                    log_error "Invalid option. Please select 1-7."
                     ;;
             esac
         done

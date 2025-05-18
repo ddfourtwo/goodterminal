@@ -119,179 +119,30 @@ extract() {
 
 # Enable better completion and prompt based on shell
 if [ "$CURRENT_SHELL" = "zsh" ]; then
-    # ZSH specific settings - oh-my-zsh style configuration
+    # For installations without oh-my-zsh, provide basic zsh enhancements
+    # If oh-my-zsh is installed, it will override most of these settings
     
-    # Load necessary modules for menu selection
+    # Basic completion setup
+    autoload -Uz compinit && compinit
     zmodload zsh/complist
     
-    # Load oh-my-zsh style plugins
-    if [ -d ~/.config/zsh/plugins ]; then
-        # Add zsh-completions to fpath before compinit
-        fpath=(~/.config/zsh/plugins/zsh-completions/src $fpath)
-        
-        # Enable completion after updating fpath
-        autoload -Uz compinit && compinit
-        
-        # Load zsh-autosuggestions (gray text predictions)
-        if [ -f ~/.config/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
-            source ~/.config/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-            # Configure autosuggestions
-            ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'
-            ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-            bindkey '^→' autosuggest-accept  # Ctrl+Right to accept suggestion
-            bindkey '^[[1;5C' autosuggest-accept  # Ctrl+Right (alternative)
-            bindkey '^[f' autosuggest-accept   # Alt+f to accept suggestion
-        fi
-        
-        # Load zsh-syntax-highlighting (colored commands)
-        if [ -f ~/.config/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
-            source ~/.config/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-        fi
-    else
-        # Fallback if plugins aren't installed
-        autoload -Uz compinit && compinit
-    fi
-    
-    # oh-my-zsh style completion settings
+    # Simple completion styling
     zstyle ':completion:*' menu select
-    zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
-    zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-    zstyle ':completion:*' group-name ''
-    zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
-    zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
-    zstyle ':completion:*:warnings' format '%F{red}-- No matches for: %d --%f'
-    zstyle ':completion:*:corrections' format '%F{green}-- %d (errors: %e) --%f'
+    zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
     
-    # Visual completion menu styling
-    zstyle ':completion:*' menu select=2
-    zstyle ':completion:*:*:*:*:*' menu yes
-    zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
-    zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
-    
-    # Completion for kill command
-    zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
-    zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
-    
-    # Path completion
-    zstyle ':completion:*' accept-exact '*(N)'
-    zstyle ':completion:*' use-cache on
-    zstyle ':completion:*' cache-path ~/.zsh/cache
-    
-    # Fuzzy matching of completions
-    zstyle ':completion:*' completer _complete _match _approximate
-    zstyle ':completion:*:match:*' original only
-    zstyle ':completion:*:approximate:*' max-errors 1 numeric
-    
-    # Ignore certain extensions
-    zstyle ':completion:*:*:*:*:*' ignored-patterns '*.pyc' '*.pyo' '*~' '.git'
-    
-    # Enable bash completion compatibility
-    autoload -Uz bashcompinit && bashcompinit
-    
-    # Better key bindings
-    bindkey '^[[A' history-beginning-search-backward
-    bindkey '^[[B' history-beginning-search-forward
-    bindkey '^A' beginning-of-line
-    bindkey '^E' end-of-line
-    bindkey '^K' kill-line
-    bindkey '^R' history-incremental-search-backward
-    bindkey '^S' history-incremental-search-forward
-    bindkey '^P' history-search-backward
-    bindkey '^N' history-search-forward  
-    bindkey '^Y' yank
-    bindkey '\e[3~' delete-char
-    bindkey '^?' backward-delete-char
-    
-    # Word movement (Option+Left/Right on macOS)
-    bindkey '\e[1;3D' backward-word
-    bindkey '\e[1;3C' forward-word
-    bindkey '^[b' backward-word
-    bindkey '^[f' forward-word
-    
-    # Enable menu navigation with arrow keys
-    bindkey -M menuselect '^[[A' up-line-or-history
-    bindkey -M menuselect '^[[B' down-line-or-history
-    bindkey -M menuselect '^[[C' forward-char
-    bindkey -M menuselect '^[[D' backward-char
-    
-    # Simple tab completion behavior
-    setopt NO_LIST_BEEP
-    setopt AUTO_MENU
-    setopt AUTO_LIST
-    setopt COMPLETE_IN_WORD
-    setopt ALWAYS_TO_END
-    
-    # Enhanced prompt with git info
+    # Basic prompt with git info
     autoload -Uz vcs_info
-    autoload -Uz colors && colors
-    
-    # Git info formatting
-    zstyle ':vcs_info:*' enable git
-    zstyle ':vcs_info:git:*' check-for-changes true
-    zstyle ':vcs_info:git:*' stagedstr '%F{green}+%f'
-    zstyle ':vcs_info:git:*' unstagedstr '%F{red}*%f'
-    zstyle ':vcs_info:git:*' formats ' %F{yellow}(%b%c%u%f%F{yellow})%f'
-    zstyle ':vcs_info:git:*' actionformats ' %F{yellow}(%b|%a%c%u%f%F{yellow})%f'
-    
-    # Prompt setup
-    precmd() { 
-        vcs_info
-        # Show user@host in green if local, yellow if SSH
-        if [[ -n $SSH_CONNECTION ]]; then
-            USER_HOST="%F{yellow}%n@%m%f"
-        else
-            USER_HOST="%F{green}%n@%m%f"
-        fi
-    }
-    
+    precmd() { vcs_info }
+    zstyle ':vcs_info:git:*' formats ' (%b)'
     setopt PROMPT_SUBST
-    PROMPT='${USER_HOST}:%F{blue}%~%f${vcs_info_msg_0_}%(?:%F{green}❯%f:%F{red}❯%f) '
-    RPROMPT='%F{240}%*%f'  # Show time on right
+    PROMPT='%F{green}%n@%m%f:%F{blue}%~%f%F{red}${vcs_info_msg_0_}%f$ '
     
-    # Enable auto-cd
+    # Essential options
     setopt AUTO_CD
-    setopt MULTIOS
-    setopt CDABLEVARS
-    
-    # Better history
     setopt SHARE_HISTORY
     setopt HIST_IGNORE_DUPS
-    setopt HIST_IGNORE_SPACE
-    setopt HIST_VERIFY
-    setopt HIST_IGNORE_ALL_DUPS
-    setopt HIST_REDUCE_BLANKS
-    setopt HIST_SAVE_NO_DUPS
-    setopt HIST_EXPIRE_DUPS_FIRST
-    setopt APPEND_HISTORY
-    setopt EXTENDED_HISTORY
-    setopt INC_APPEND_HISTORY
-    
-    # Better directory navigation
-    setopt AUTO_PUSHD
-    setopt PUSHD_IGNORE_DUPS
-    setopt PUSHD_MINUS
-    
-    # Better globbing
-    setopt EXTENDED_GLOB
-    setopt GLOB_DOTS
-    setopt NO_CASE_GLOB
-    
-    # Correction
-    setopt CORRECT_ALL
-    
-    # Completion options
-    setopt ALWAYS_TO_END
-    setopt AUTO_LIST
     setopt AUTO_MENU
-    setopt AUTO_PARAM_KEYS
-    setopt AUTO_PARAM_SLASH
-    setopt AUTO_REMOVE_SLASH
-    setopt COMPLETE_ALIASES
     setopt COMPLETE_IN_WORD
-    setopt LIST_AMBIGUOUS
-    setopt LIST_PACKED
-    setopt MENU_COMPLETE
-    
     
 elif [ "$CURRENT_SHELL" = "bash" ]; then
     # Bash specific settings

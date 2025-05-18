@@ -1,0 +1,69 @@
+# GoodTerminal + oh-my-zsh configuration
+
+# Path to your oh-my-zsh installation
+export ZSH="$HOME/.oh-my-zsh"
+
+# Set theme
+ZSH_THEME="robbyrussell"
+
+# Enable plugins
+plugins=(
+    git
+    docker
+    docker-compose
+    npm
+    pip
+    python
+    tmux
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+    colored-man-pages
+    command-not-found
+    extract
+)
+
+# Plugin configuration
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
+
+# Load oh-my-zsh
+source $ZSH/oh-my-zsh.sh
+
+# User configuration
+export EDITOR='nvim'
+export VISUAL='nvim'
+
+# Aliases
+alias v='nvim'
+alias vi='nvim'
+alias vim='nvim'
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias lg='lazygit'
+
+# Functions
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+bak() {
+    cp "$1" "$1.bak"
+}
+
+# Better key bindings
+bindkey '^[[1;5C' forward-word        # Ctrl+Right
+bindkey '^[[1;5D' backward-word       # Ctrl+Left
+bindkey '^[[1;5C' autosuggest-accept  # Ctrl+Right to accept autosuggestion
+bindkey '^[f' autosuggest-accept      # Alt+f to accept autosuggestion
+
+# Load GoodTerminal configurations
+[ -f "__SCRIPT_DIR__/config/shell/config" ] && source "__SCRIPT_DIR__/config/shell/config"
+[ -f "__SCRIPT_DIR__/config/mosh/config" ] && source "__SCRIPT_DIR__/config/mosh/config"
+
+# Load local customizations if they exist
+[ -f ~/.shell_local ] && source ~/.shell_local
