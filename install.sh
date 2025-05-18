@@ -97,6 +97,23 @@ install_package_managers() {
     fi
 }
 
+# Wait for apt lock to be released
+wait_for_apt() {
+    local max_wait=300  # 5 minutes
+    local wait_time=0
+    
+    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+        if [ $wait_time -ge $max_wait ]; then
+            log_error "Apt lock not released after $max_wait seconds"
+            return 1
+        fi
+        log_info "Waiting for apt lock to be released... ($wait_time/$max_wait seconds)"
+        sleep 5
+        wait_time=$((wait_time + 5))
+    done
+    return 0
+}
+
 # Install dependencies
 install_dependencies() {
     log_info "Installing dependencies..."
@@ -105,7 +122,9 @@ install_dependencies() {
     local deps="curl git wget build-essential"
     
     if [[ "$OS" == "debian" ]]; then
+        wait_for_apt
         sudo $PKG_UPDATE
+        wait_for_apt
         sudo $PKG_INSTALL $deps software-properties-common zsh fzf
     elif [[ "$OS" == "rhel" ]]; then
         sudo $PKG_UPDATE
@@ -126,7 +145,10 @@ install_dependencies() {
 install_mosh() {
     log_info "Installing mosh..."
     
-    if [[ "$OS" == "debian" ]] || [[ "$OS" == "rhel" ]] || [[ "$OS" == "arch" ]]; then
+    if [[ "$OS" == "debian" ]]; then
+        wait_for_apt
+        sudo $PKG_INSTALL mosh
+    elif [[ "$OS" == "rhel" ]] || [[ "$OS" == "arch" ]]; then
         sudo $PKG_INSTALL mosh
     elif [[ "$OS" == "macos" ]]; then
         $PKG_INSTALL mosh
@@ -172,6 +194,7 @@ install_tmux() {
     
     if [[ "$OS" == "debian" ]]; then
         # Install latest tmux from source on Debian/Ubuntu
+        wait_for_apt
         sudo $PKG_INSTALL libevent-dev ncurses-dev build-essential bison pkg-config automake
         
         TMUX_VERSION="3.4"
@@ -205,8 +228,11 @@ install_nvim() {
     
     if [[ "$OS" == "debian" ]]; then
         # Install latest neovim from official repository
+        wait_for_apt
         sudo add-apt-repository ppa:neovim-ppa/unstable -y
+        wait_for_apt
         sudo apt-get update
+        wait_for_apt
         sudo $PKG_INSTALL neovim
     elif [[ "$OS" == "rhel" ]]; then
         # Install from EPEL
@@ -224,6 +250,9 @@ install_nvim() {
     # Ensure curl is available (needed for Windsurf)
     if ! command -v curl &> /dev/null; then
         log_info "Installing curl..."
+        if [[ "$OS" == "debian" ]]; then
+            wait_for_apt
+        fi
         sudo $PKG_INSTALL curl
     fi
     
@@ -242,6 +271,7 @@ install_nvim() {
             log_warning "Consider using nvm for better Node version management"
             if [[ "$OS" == "debian" ]]; then
                 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+                wait_for_apt
                 sudo $PKG_INSTALL nodejs
             elif [[ "$OS" == "rhel" ]]; then
                 curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
@@ -284,13 +314,19 @@ install_nvim() {
     # Python for LSP and other tools
     if ! command -v python3 &> /dev/null; then
         log_info "Installing Python..."
+        if [[ "$OS" == "debian" ]]; then
+            wait_for_apt
+        fi
         sudo $PKG_INSTALL python3 python3-pip
     fi
     
     # Ripgrep for better searching
     if ! command -v rg &> /dev/null; then
         log_info "Installing ripgrep..."
-        if [[ "$OS" == "debian" ]] || [[ "$OS" == "rhel" ]] || [[ "$OS" == "arch" ]]; then
+        if [[ "$OS" == "debian" ]]; then
+            wait_for_apt
+            sudo $PKG_INSTALL ripgrep
+        elif [[ "$OS" == "rhel" ]] || [[ "$OS" == "arch" ]]; then
             sudo $PKG_INSTALL ripgrep
         elif [[ "$OS" == "macos" ]]; then
             $PKG_INSTALL ripgrep
