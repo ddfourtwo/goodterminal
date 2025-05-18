@@ -294,13 +294,21 @@ configure_installations() {
         log_info "Installing oh-my-zsh plugins..."
         
         # zsh-autosuggestions
-        if [ ! -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]; then
-            git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+        AUTOSUGGESTIONS_DIR="${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
+        if [ ! -d "$AUTOSUGGESTIONS_DIR" ]; then
+            log_info "Installing zsh-autosuggestions..."
+            git clone https://github.com/zsh-users/zsh-autosuggestions "$AUTOSUGGESTIONS_DIR"
+        else
+            log_info "zsh-autosuggestions already installed"
         fi
         
         # zsh-syntax-highlighting
-        if [ ! -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" ]; then
-            git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+        SYNTAX_HIGHLIGHTING_DIR="${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
+        if [ ! -d "$SYNTAX_HIGHLIGHTING_DIR" ]; then
+            log_info "Installing zsh-syntax-highlighting..."
+            git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$SYNTAX_HIGHLIGHTING_DIR"
+        else
+            log_info "zsh-syntax-highlighting already installed"
         fi
         
         # Configure oh-my-zsh settings
