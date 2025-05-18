@@ -376,10 +376,15 @@ install_nvim() {
     if ! command -v lazygit &> /dev/null; then
         log_info "Installing lazygit..."
         if [[ "$OS" == "debian" ]]; then
-            # Add lazygit repo and install
-            sudo add-apt-repository ppa:lazygit-team/release -y
-            sudo apt-get update
-            sudo apt-get install lazygit -y
+            # For Ubuntu 22.04+ and Debian, install from GitHub releases
+            LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]+' || echo "0.44.1")
+            
+            cd /tmp
+            wget "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+            tar xf "lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz" lazygit
+            sudo install lazygit /usr/local/bin
+            cd -
+            rm -f /tmp/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz /tmp/lazygit
         elif [[ "$OS" == "rhel" ]]; then
             # Install from copr
             sudo dnf copr enable atim/lazygit -y
