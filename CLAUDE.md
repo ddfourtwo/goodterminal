@@ -22,9 +22,11 @@ GoodTerminal is designed to transform any Linux or macOS server into a powerful 
 
 3. **Modern Development Features**: Full LSP support, autocompletion, syntax highlighting, and fuzzy finding out of the box.
 
-4. **Cross-Platform**: Works identically on Ubuntu, Debian, RHEL, CentOS, Arch Linux, and macOS.
+4. **Oh-My-Zsh Style Shell**: Enhanced zsh configuration with intelligent autocompletion, fuzzy matching, and rich prompts without the overhead of oh-my-zsh.
 
-5. **Resilient Connections**: Mosh integration ensures your sessions survive network changes and disconnections.
+5. **Cross-Platform**: Works identically on Ubuntu, Debian, RHEL, CentOS, Arch Linux, and macOS.
+
+6. **Resilient Connections**: Mosh integration ensures your sessions survive network changes and disconnections.
 
 ## Technical Approach
 

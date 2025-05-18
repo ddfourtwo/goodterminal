@@ -119,46 +119,135 @@ extract() {
 
 # Enable better completion and prompt based on shell
 if [ "$CURRENT_SHELL" = "zsh" ]; then
-    # ZSH specific settings
+    # ZSH specific settings - oh-my-zsh style configuration
     
     # Enable completion
     autoload -Uz compinit && compinit
     
-    # Better completion options
+    # oh-my-zsh style completion settings
     zstyle ':completion:*' menu select
-    zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
-    zstyle ':completion:*' list-colors ''
+    zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+    zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
     zstyle ':completion:*' group-name ''
     zstyle ':completion:*:descriptions' format '%B%d%b'
+    zstyle ':completion:*:messages' format '%d'
+    zstyle ':completion:*:warnings' format 'No matches for: %d'
+    zstyle ':completion:*:corrections' format '%B%d (errors: %e)%b'
     
-    # Case insensitive completion
-    zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+    # Completion for kill command
+    zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+    zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
     
-    # Partial completion suggestions
-    zstyle ':completion:*' list-suffixes
-    zstyle ':completion:*' expand prefix suffix
+    # Path completion
+    zstyle ':completion:*' accept-exact '*(N)'
+    zstyle ':completion:*' use-cache on
+    zstyle ':completion:*' cache-path ~/.zsh/cache
+    
+    # Fuzzy matching of completions
+    zstyle ':completion:*' completer _complete _match _approximate
+    zstyle ':completion:*:match:*' original only
+    zstyle ':completion:*:approximate:*' max-errors 1 numeric
+    
+    # Ignore certain extensions
+    zstyle ':completion:*:*:*:*:*' ignored-patterns '*.pyc' '*.pyo' '*~' '.git'
     
     # Enable bash completion compatibility
     autoload -Uz bashcompinit && bashcompinit
     
-    # History search with arrow keys
-    bindkey '^[[A' history-search-backward
-    bindkey '^[[B' history-search-forward
+    # Better key bindings
+    bindkey '^[[A' history-substring-search-up
+    bindkey '^[[B' history-substring-search-down
+    bindkey '^A' beginning-of-line
+    bindkey '^E' end-of-line
+    bindkey '^K' kill-line
+    bindkey '^R' history-incremental-search-backward
+    bindkey '^S' history-incremental-search-forward
+    bindkey '^P' history-search-backward
+    bindkey '^N' history-search-forward  
+    bindkey '^Y' yank
+    bindkey '\e[3~' delete-char
+    bindkey '^?' backward-delete-char
     
-    # Simple prompt with git info
+    # Word movement (Option+Left/Right on macOS)
+    bindkey '\e[1;3D' backward-word
+    bindkey '\e[1;3C' forward-word
+    bindkey '^[b' backward-word
+    bindkey '^[f' forward-word
+    
+    # Enable history substring search
+    autoload -Uz history-substring-search-up
+    autoload -Uz history-substring-search-down
+    
+    # Enhanced prompt with git info
     autoload -Uz vcs_info
-    precmd() { vcs_info }
-    zstyle ':vcs_info:git:*' formats ' (%b)'
+    autoload -Uz colors && colors
+    
+    # Git info formatting
+    zstyle ':vcs_info:*' enable git
+    zstyle ':vcs_info:git:*' check-for-changes true
+    zstyle ':vcs_info:git:*' stagedstr '%F{green}+%f'
+    zstyle ':vcs_info:git:*' unstagedstr '%F{red}*%f'
+    zstyle ':vcs_info:git:*' formats ' %F{yellow}(%b%c%u%f%F{yellow})%f'
+    zstyle ':vcs_info:git:*' actionformats ' %F{yellow}(%b|%a%c%u%f%F{yellow})%f'
+    
+    # Prompt setup
+    precmd() { 
+        vcs_info
+        # Show user@host in green if local, yellow if SSH
+        if [[ -n $SSH_CONNECTION ]]; then
+            USER_HOST="%F{yellow}%n@%m%f"
+        else
+            USER_HOST="%F{green}%n@%m%f"
+        fi
+    }
+    
     setopt PROMPT_SUBST
-    PROMPT='%F{green}%n@%m%f:%F{blue}%~%f%F{red}${vcs_info_msg_0_}%f$ '
+    PROMPT='${USER_HOST}:%F{blue}%~%f${vcs_info_msg_0_}%(?:%F{green}❯%f:%F{red}❯%f) '
+    RPROMPT='%F{240}%*%f'  # Show time on right
     
     # Enable auto-cd
     setopt AUTO_CD
+    setopt MULTIOS
+    setopt CDABLEVARS
     
     # Better history
     setopt SHARE_HISTORY
     setopt HIST_IGNORE_DUPS
     setopt HIST_IGNORE_SPACE
+    setopt HIST_VERIFY
+    setopt HIST_IGNORE_ALL_DUPS
+    setopt HIST_REDUCE_BLANKS
+    setopt HIST_SAVE_NO_DUPS
+    setopt HIST_EXPIRE_DUPS_FIRST
+    setopt APPEND_HISTORY
+    setopt EXTENDED_HISTORY
+    setopt INC_APPEND_HISTORY
+    
+    # Better directory navigation
+    setopt AUTO_PUSHD
+    setopt PUSHD_IGNORE_DUPS
+    setopt PUSHD_MINUS
+    
+    # Better globbing
+    setopt EXTENDED_GLOB
+    setopt GLOB_DOTS
+    setopt NO_CASE_GLOB
+    
+    # Correction
+    setopt CORRECT_ALL
+    
+    # Completion options
+    setopt ALWAYS_TO_END
+    setopt AUTO_LIST
+    setopt AUTO_MENU
+    setopt AUTO_PARAM_KEYS
+    setopt AUTO_PARAM_SLASH
+    setopt AUTO_REMOVE_SLASH
+    setopt COMPLETE_ALIASES
+    setopt COMPLETE_IN_WORD
+    setopt LIST_AMBIGUOUS
+    setopt LIST_PACKED
+    setopt MENU_COMPLETE
     
 elif [ "$CURRENT_SHELL" = "bash" ]; then
     # Bash specific settings
@@ -192,6 +281,58 @@ elif [ "$CURRENT_SHELL" = "bash" ]; then
     # Bash history search with arrow keys
     bind '"\e[A": history-search-backward'
     bind '"\e[B": history-search-forward'
+fi
+
+# oh-my-zsh style utility functions
+if [ "$CURRENT_SHELL" = "zsh" ]; then
+    # Directory shortcuts
+    alias -g ...='../..'
+    alias -g ....='../../..'
+    alias -g .....='../../../..'
+    alias -g ......='../../../../..'
+    
+    # Global aliases for piping
+    alias -g G='| grep'
+    alias -g L='| less'
+    alias -g H='| head'
+    alias -g T='| tail'
+    alias -g S='| sort'
+    alias -g W='| wc -l'
+    alias -g X='| xargs'
+    
+    # Smart directory navigation
+    d() {
+        if [[ -n $1 ]]; then
+            dirs "$@"
+        else
+            dirs -v | head -n 10
+        fi
+    }
+    compdef _dirs d
+    
+    # Quick directory jumping by number from dirs
+    alias 1='cd +1'
+    alias 2='cd +2'
+    alias 3='cd +3'
+    alias 4='cd +4'
+    alias 5='cd +5'
+    alias 6='cd +6'
+    alias 7='cd +7'
+    alias 8='cd +8'
+    alias 9='cd +9'
+    
+    # Take command - make directory and cd into it
+    take() {
+        mkdir -p "$@" && cd "${@:$#}"
+    }
+    
+    # Find in current directory
+    alias fd='find . -type d -name'
+    alias ff='find . -type f -name'
+    
+    # System info aliases
+    alias zshrc='${=EDITOR} ~/.zshrc'
+    alias reload='source ~/.zshrc'
 fi
 
 # Load local customizations if they exist

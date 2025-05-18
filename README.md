@@ -95,9 +95,14 @@ claude help            # View available commands
 - Cleanup utilities
 
 ### Shell Configuration
-- Auto-completion for both bash and zsh
+- Oh-my-zsh style autocomplete for zsh with:
+  - Menu-based completion with arrow key navigation
+  - Case-insensitive and fuzzy matching
+  - Git-aware prompt with status indicators
+  - Smart directory navigation and history
+  - Global aliases for common operations
+- Enhanced bash completion
 - Useful aliases and shortcuts
-- Git-aware prompt
 - Better history management
 - Essential helper functions
 
