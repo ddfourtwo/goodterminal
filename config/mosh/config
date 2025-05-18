@@ -1,0 +1,46 @@
+# GoodTerminal mosh configuration
+
+# Mosh doesn't use a traditional config file, but we can store
+# recommended settings and environment variables here.
+# These will be sourced in the user's shell profile.
+
+# Mosh server options
+export MOSH_SERVER_NETWORK_TMOUT=604800  # 7 days timeout
+export MOSH_PREDICTION_DISPLAY=adaptive  # or 'always' or 'never'
+
+# Preferred mosh settings
+export MOSH_ESCAPE_KEY='~'  # Default escape key
+
+# Terminal settings for mosh compatibility
+export TERM=xterm-256color
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+# Function to start mosh with tmux
+mosh_tmux() {
+    if [ -z "$1" ]; then
+        echo "Usage: mosh_tmux <hostname> [session-name]"
+        return 1
+    fi
+    
+    local host=$1
+    local session=${2:-main}
+    
+    mosh $host -- tmux new-session -A -s $session
+}
+
+# Alias for common mosh commands
+alias mosh-kill='killall mosh-server 2>/dev/null'
+alias mosh-list='ps aux | grep mosh-server | grep -v grep'
+
+# Function to clean up old mosh sessions
+mosh_cleanup() {
+    echo "Cleaning up old mosh-server processes..."
+    ps aux | grep 'mosh-server' | grep -v grep | awk '{print $2}' | while read pid; do
+        # Check if the process is older than 7 days
+        if [ "$(ps -p $pid -o etime= | sed 's/^[ ]*//' | cut -d'-' -f1)" -gt 7 ] 2>/dev/null; then
+            echo "Killing old mosh-server process: $pid"
+            kill $pid
+        fi
+    done
+}
