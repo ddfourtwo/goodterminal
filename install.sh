@@ -138,16 +138,21 @@ run_apt_command() {
     [[ $- == *e* ]] && old_e=1 || old_e=0
     set +e
     
-    # Try the command first
-    $cmd $args
-    local result=$?
+    # Try the command first  
+    $cmd $args 2>&1 | tee /tmp/apt_output.tmp
+    local result=${PIPESTATUS[0]}
     
-    # If it failed due to lock, wait and retry
-    if [ $result -ne 0 ]; then
+    # Check if the error was due to lock
+    if [ $result -ne 0 ] && grep -q "Could not get lock\|dpkg frontend lock" /tmp/apt_output.tmp; then
+        log_info "APT lock detected, waiting for it to be released..."
         wait_for_apt
+        # Try again after waiting
         $cmd $args
         result=$?
     fi
+    
+    # Clean up temp file
+    rm -f /tmp/apt_output.tmp
     
     # Re-enable exit on error if it was enabled
     [ $old_e -eq 1 ] && set -e
