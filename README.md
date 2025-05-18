@@ -86,7 +86,7 @@ claude help            # View available commands
 - Mouse support
 - Intuitive pane/window management
 - Session persistence
-- Status bar with essential info
+- Modern Dracula theme with system monitoring
 - Prefix key: ` (backtick)
 
 ### Mosh Configuration

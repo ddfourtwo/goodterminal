@@ -599,6 +599,7 @@ check_health() {
     if command -v tmux &> /dev/null; then
         log_info "Tmux version: $(tmux -V)"
         log_info "Tmux prefix key: backtick (\`)"
+        log_info "Tmux theme: Dracula with system monitoring"
     else
         log_warning "Tmux not found"
     fi
@@ -668,6 +669,7 @@ full_install() {
     log_info ""
     log_info "IMPORTANT: The tmux prefix key is the backtick (\`)"
     log_info "Example: To reload config, press \` then r"
+    log_info "Tmux is configured with the Dracula theme for a modern, beautiful appearance."
     log_info ""
     log_info "Please restart your shell to apply configurations."
     log_info "For tmux, you may need to press prefix + I (\` + I) to install plugins on first run."
