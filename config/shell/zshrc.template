@@ -17,18 +17,20 @@ plugins=(
     tmux
     zsh-autosuggestions
     zsh-syntax-highlighting
+    zsh-interactive-cd
     colored-man-pages
     command-not-found
     extract
 )
 
-# Plugin configuration
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'
-ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
-
 # Load oh-my-zsh
 source $ZSH/oh-my-zsh.sh
+
+# Plugin configuration
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'
+export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+
+# zsh-interactive-cd will handle directory listing for cd command
 
 # User configuration
 export EDITOR='nvim'
@@ -56,7 +58,6 @@ bak() {
 }
 
 # Better key bindings
-bindkey '^[[1;5C' forward-word        # Ctrl+Right
 bindkey '^[[1;5D' backward-word       # Ctrl+Left
 bindkey '^[[1;5C' autosuggest-accept  # Ctrl+Right to accept autosuggestion
 bindkey '^[f' autosuggest-accept      # Alt+f to accept autosuggestion
@@ -64,6 +65,9 @@ bindkey '^[f' autosuggest-accept      # Alt+f to accept autosuggestion
 # Load GoodTerminal configurations
 [ -f "__SCRIPT_DIR__/config/shell/config" ] && source "__SCRIPT_DIR__/config/shell/config"
 [ -f "__SCRIPT_DIR__/config/mosh/config" ] && source "__SCRIPT_DIR__/config/mosh/config"
+
+# Load fzf configuration
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # Load local customizations if they exist
 [ -f ~/.shell_local ] && source ~/.shell_local

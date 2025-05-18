@@ -98,17 +98,20 @@ install_dependencies() {
     
     if [[ "$OS" == "debian" ]]; then
         sudo $PKG_UPDATE
-        sudo $PKG_INSTALL $deps software-properties-common zsh
+        sudo $PKG_INSTALL $deps software-properties-common zsh fzf
     elif [[ "$OS" == "rhel" ]]; then
         sudo $PKG_UPDATE
-        sudo $PKG_INSTALL $deps zsh
+        sudo $PKG_INSTALL $deps zsh fzf
     elif [[ "$OS" == "arch" ]]; then
         sudo $PKG_UPDATE
-        sudo $PKG_INSTALL base-devel git curl wget zsh
+        sudo $PKG_INSTALL base-devel git curl wget zsh fzf
     elif [[ "$OS" == "macos" ]]; then
         $PKG_UPDATE
-        $PKG_INSTALL git curl wget zsh
+        $PKG_INSTALL git curl wget zsh fzf
     fi
+    
+    # Install fzf shell integration
+    install_fzf_integration
 }
 
 # Install mosh
@@ -122,6 +125,37 @@ install_mosh() {
     fi
     
     log_info "Mosh installed: $(mosh --version | head -n1)"
+}
+
+# Install fzf shell integration
+install_fzf_integration() {
+    log_info "Installing fzf shell integration..."
+    
+    if command -v fzf &> /dev/null; then
+        # For macOS with homebrew
+        if [[ "$OS" == "macos" ]]; then
+            FZF_PATH="$(brew --prefix)/opt/fzf"
+            if [ -d "$FZF_PATH" ] && [ -f "$FZF_PATH/install" ]; then
+                log_info "Running fzf install script..."
+                "$FZF_PATH/install" --key-bindings --completion --no-update-rc --no-bash --no-fish
+            fi
+        else
+            # For Linux distributions
+            if command -v dpkg &> /dev/null; then
+                # Debian/Ubuntu
+                FZF_PATH="/usr/share/doc/fzf/examples"
+                if [ -d "$FZF_PATH" ]; then
+                    [ -f "$FZF_PATH/key-bindings.zsh" ] && cp "$FZF_PATH/key-bindings.zsh" ~/.fzf.key-bindings.zsh
+                    [ -f "$FZF_PATH/completion.zsh" ] && cp "$FZF_PATH/completion.zsh" ~/.fzf.completion.zsh
+                    # Create ~/.fzf.zsh to source these files
+                    echo '[ -f ~/.fzf.key-bindings.zsh ] && source ~/.fzf.key-bindings.zsh' > ~/.fzf.zsh
+                    echo '[ -f ~/.fzf.completion.zsh ] && source ~/.fzf.completion.zsh' >> ~/.fzf.zsh
+                fi
+            fi
+        fi
+    else
+        log_warning "fzf not found. Install fzf and re-run the script."
+    fi
 }
 
 # Install tmux
@@ -293,8 +327,11 @@ configure_installations() {
         # Install additional plugins
         log_info "Installing oh-my-zsh plugins..."
         
+        # Set ZSH_CUSTOM if not set
+        ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+        
         # zsh-autosuggestions
-        AUTOSUGGESTIONS_DIR="${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
+        AUTOSUGGESTIONS_DIR="$ZSH_CUSTOM/plugins/zsh-autosuggestions"
         if [ ! -d "$AUTOSUGGESTIONS_DIR" ]; then
             log_info "Installing zsh-autosuggestions..."
             git clone https://github.com/zsh-users/zsh-autosuggestions "$AUTOSUGGESTIONS_DIR"
@@ -303,7 +340,7 @@ configure_installations() {
         fi
         
         # zsh-syntax-highlighting
-        SYNTAX_HIGHLIGHTING_DIR="${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
+        SYNTAX_HIGHLIGHTING_DIR="$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
         if [ ! -d "$SYNTAX_HIGHLIGHTING_DIR" ]; then
             log_info "Installing zsh-syntax-highlighting..."
             git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$SYNTAX_HIGHLIGHTING_DIR"
@@ -311,50 +348,66 @@ configure_installations() {
             log_info "zsh-syntax-highlighting already installed"
         fi
         
+        # zsh-autocomplete
+        AUTOCOMPLETE_DIR="$ZSH_CUSTOM/plugins/zsh-autocomplete"
+        if [ ! -d "$AUTOCOMPLETE_DIR" ]; then
+            log_info "Installing zsh-autocomplete..."
+            git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git "$AUTOCOMPLETE_DIR"
+        else
+            log_info "zsh-autocomplete already installed"
+        fi
+        
         # Configure oh-my-zsh settings
         if [ -f "$HOME/.zshrc" ]; then
             log_info "Integrating GoodTerminal settings into existing .zshrc..."
             
-            # Check if our configuration is already present
-            if ! grep -q "GoodTerminal configuration" "$HOME/.zshrc"; then
+            # Check if our configuration is already present by looking for the actual source command
+            if ! grep -q "goodterminal/config/shell/config" "$HOME/.zshrc"; then
                 # Backup existing .zshrc
                 cp "$HOME/.zshrc" "$HOME/.zshrc.backup-$(date +%Y%m%d-%H%M%S)"
                 
                 # Add our plugins to the existing plugins list
                 if grep -q "^plugins=" "$HOME/.zshrc"; then
-                    # Extract existing plugins
-                    existing_plugins=$(grep "^plugins=" "$HOME/.zshrc" | sed 's/plugins=(\(.*\))/\1/')
+                    # Extract existing plugins - get the current plugins line and clean it up
+                    existing_plugins=$(grep "^plugins=" "$HOME/.zshrc" | sed 's/plugins=(//' | sed 's/)//' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                    log_info "Current plugins: $existing_plugins"
+                    
                     # Add our required plugins
-                    our_plugins="zsh-autosuggestions zsh-syntax-highlighting"
+                    our_plugins="zsh-autosuggestions zsh-syntax-highlighting zsh-autocomplete"
                     for plugin in $our_plugins; do
                         if ! echo "$existing_plugins" | grep -q "$plugin"; then
                             existing_plugins="$existing_plugins $plugin"
                         fi
                     done
-                    # Update the plugins line
-                    sed -i.tmp "s/^plugins=.*/plugins=($existing_plugins)/" "$HOME/.zshrc"
+                    
+                    # Update the plugins line - use sed with proper escaping
+                    sed -i.tmp "s/^plugins=(.*)$/plugins=($existing_plugins)/" "$HOME/.zshrc"
                     rm -f "$HOME/.zshrc.tmp"
                 else
                     # Add plugins line if it doesn't exist
                     echo "" >> "$HOME/.zshrc"
                     echo "# Plugins" >> "$HOME/.zshrc"
-                    echo "plugins=(git zsh-autosuggestions zsh-syntax-highlighting)" >> "$HOME/.zshrc"
+                    echo "plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-autocomplete)" >> "$HOME/.zshrc"
                 fi
                 
                 # Add our configuration block
                 echo "" >> "$HOME/.zshrc"
                 echo "# GoodTerminal configuration" >> "$HOME/.zshrc"
                 echo "# Plugin configuration" >> "$HOME/.zshrc"
-                echo "ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'" >> "$HOME/.zshrc"
-                echo "ZSH_AUTOSUGGEST_STRATEGY=(history completion)" >> "$HOME/.zshrc"
+                echo "export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'" >> "$HOME/.zshrc"
+                echo "export ZSH_AUTOSUGGEST_STRATEGY=(history completion)" >> "$HOME/.zshrc"
                 echo "" >> "$HOME/.zshrc"
                 echo "# Key bindings" >> "$HOME/.zshrc"
+                echo "bindkey '^[[1;5D' backward-word       # Ctrl+Left" >> "$HOME/.zshrc"
                 echo "bindkey '^[[1;5C' autosuggest-accept  # Ctrl+Right to accept" >> "$HOME/.zshrc"
                 echo "bindkey '^[f' autosuggest-accept      # Alt+f to accept" >> "$HOME/.zshrc"
                 echo "" >> "$HOME/.zshrc"
                 echo "# Load GoodTerminal configurations" >> "$HOME/.zshrc"
                 echo "[ -f \"$SCRIPT_DIR/config/shell/config\" ] && source \"$SCRIPT_DIR/config/shell/config\"" >> "$HOME/.zshrc"
                 echo "[ -f \"$SCRIPT_DIR/config/mosh/config\" ] && source \"$SCRIPT_DIR/config/mosh/config\"" >> "$HOME/.zshrc"
+                echo "" >> "$HOME/.zshrc"
+                echo "# Load fzf configuration" >> "$HOME/.zshrc"
+                echo "[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh" >> "$HOME/.zshrc"
                 
                 log_info "Added GoodTerminal configuration to existing .zshrc"
             else
@@ -425,14 +478,21 @@ update_plugins() {
         fi
         
         # Update custom plugins
-        if [ -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]; then
+        ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+        
+        if [ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
             log_info "Updating zsh-autosuggestions..."
-            cd "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" && git pull
+            cd "$ZSH_CUSTOM/plugins/zsh-autosuggestions" && git pull
         fi
         
-        if [ -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" ]; then
+        if [ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
             log_info "Updating zsh-syntax-highlighting..."
-            cd "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" && git pull
+            cd "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" && git pull
+        fi
+        
+        if [ -d "$ZSH_CUSTOM/plugins/zsh-autocomplete" ]; then
+            log_info "Updating zsh-autocomplete..."
+            cd "$ZSH_CUSTOM/plugins/zsh-autocomplete" && git pull
         fi
     fi
     
@@ -625,6 +685,13 @@ purge_and_reinstall() {
     log_info "Removing tmux plugins..."
     rm -rf ~/.tmux/plugins/*
     
+    # Remove oh-my-zsh custom plugins
+    log_info "Removing oh-my-zsh custom plugins..."
+    ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+    rm -rf "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+    rm -rf "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+    rm -rf "$ZSH_CUSTOM/plugins/zsh-autocomplete"
+    
     # Remove neovim plugins and cache
     log_info "Removing neovim plugins and cache..."
     rm -rf ~/.local/share/nvim
@@ -642,16 +709,13 @@ purge_and_reinstall() {
         # Create backup before modifying
         cp "$HOME/.zshrc" "$HOME/.zshrc.goodterminal-purge-backup"
         
-        # Remove our configuration block
-        sed -i.bak '/# GoodTerminal configuration/,/^$/d' "$HOME/.zshrc"
+        # Remove our configuration block and all GoodTerminal related lines
+        sed -i.bak '/# GoodTerminal configuration/,/\[ -f.*goodterminal.*\]/d' "$HOME/.zshrc"
         
-        # Remove individual source lines if they exist
-        sed -i.bak '/goodterminal\/config\/shell\/config/d' "$HOME/.zshrc"
-        sed -i.bak '/goodterminal\/config\/mosh\/config/d' "$HOME/.zshrc"
+        # Also clean up any remaining GoodTerminal references
+        sed -i.bak '/GoodTerminal/d' "$HOME/.zshrc"
+        sed -i.bak '/goodterminal/d' "$HOME/.zshrc"
         
-        # Remove our plugin configurations
-        sed -i.bak '/ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE=/d' "$HOME/.zshrc"
-        sed -i.bak '/ZSH_AUTOSUGGEST_STRATEGY=/d' "$HOME/.zshrc"
         
         # Clean up backup files
         rm -f "$HOME/.zshrc.bak"

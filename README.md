@@ -95,15 +95,19 @@ claude help            # View available commands
 - Cleanup utilities
 
 ### Shell Configuration  
-- Full oh-my-zsh integration included by default:
-  - **zsh-autosuggestions**: Gray text predictions as you type (press Ctrl+Right to accept)
-  - **zsh-syntax-highlighting**: Real-time syntax highlighting of commands
+- Enhanced oh-my-zsh with custom plugins:
   - Beautiful prompts with git information
-  - Extensive plugin ecosystem
+  - Real-time syntax highlighting (zsh-syntax-highlighting plugin)
+  - Intelligent command autosuggestions (zsh-autosuggestions plugin)
+  - Interactive cd with directory preview (zsh-interactive-cd plugin with fzf)
   - Smart tab completion with visual menu
   - Directory navigation shortcuts
   - Command history search
   - Automatic command corrections
+  - Popular plugins enabled: git, docker, npm, python, tmux, and more
+- Key bindings:
+  - `Ctrl+Right` or `Alt+f`: Accept autosuggestion
+  - `Ctrl+Left/Right`: Navigate words
 - Enhanced bash completion for non-zsh users
 - Useful aliases and shortcuts
 - Better history management
