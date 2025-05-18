@@ -32,6 +32,14 @@ log_prompt() {
 # Get the directory of this script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
+# Source nvm if available to ensure proper Node.js environment
+if [ -n "$NVM_DIR" ] && [ -s "$NVM_DIR/nvm.sh" ]; then
+    \. "$NVM_DIR/nvm.sh"
+elif [ -s "$HOME/.nvm/nvm.sh" ]; then
+    export NVM_DIR="$HOME/.nvm"
+    \. "$NVM_DIR/nvm.sh"
+fi
+
 # Detect OS
 detect_os() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -221,30 +229,55 @@ install_nvim() {
     
     # Node.js for LSP servers and CLI tools
     if ! command -v node &> /dev/null; then
-        log_info "Installing Node.js..."
-        if [[ "$OS" == "debian" ]]; then
-            curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-            sudo $PKG_INSTALL nodejs
-        elif [[ "$OS" == "rhel" ]]; then
-            curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-            sudo $PKG_INSTALL nodejs
-        elif [[ "$OS" == "arch" ]]; then
-            sudo $PKG_INSTALL nodejs npm
-        elif [[ "$OS" == "macos" ]]; then
-            $PKG_INSTALL node
+        # Check if nvm is installed
+        if [ -n "$NVM_DIR" ] && [ -s "$NVM_DIR/nvm.sh" ]; then
+            log_info "nvm detected. Using nvm to install Node.js..."
+            # Source nvm if not already sourced
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install --lts
+            nvm use --lts
+            log_info "Node.js installed via nvm: $(node --version)"
+        else
+            log_info "Installing Node.js..."
+            log_warning "Consider using nvm for better Node version management"
+            if [[ "$OS" == "debian" ]]; then
+                curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+                sudo $PKG_INSTALL nodejs
+            elif [[ "$OS" == "rhel" ]]; then
+                curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
+                sudo $PKG_INSTALL nodejs
+            elif [[ "$OS" == "arch" ]]; then
+                sudo $PKG_INSTALL nodejs npm
+            elif [[ "$OS" == "macos" ]]; then
+                $PKG_INSTALL node
+            fi
         fi
+    else
+        log_info "Node.js already installed: $(node --version)"
     fi
     
     # Install Claude Code CLI
     if ! command -v claude &> /dev/null; then
         log_info "Installing Claude Code CLI..."
+        
+        # Check if we're using nvm and ensure correct npm is used
+        if [ -n "$NVM_DIR" ] && [ -s "$NVM_DIR/nvm.sh" ]; then
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            log_info "Using npm from nvm: $(which npm)"
+        fi
+        
         npm install -g @anthropic-ai/claude-code
         
         # Check if npm bin is in PATH
         NPM_BIN=$(npm bin -g)
         if [[ ":$PATH:" != *":$NPM_BIN:"* ]]; then
             log_warning "NPM global bin directory not in PATH. Adding to shell profile..."
-            echo "export PATH=\"$NPM_BIN:\$PATH\"" >> "$SHELL_PROFILE"
+            # Determine the shell profile file
+            if [ -f "$HOME/.zshrc" ]; then
+                echo "export PATH=\"$NPM_BIN:\$PATH\"" >> "$HOME/.zshrc"
+            elif [ -f "$HOME/.bashrc" ]; then
+                echo "export PATH=\"$NPM_BIN:\$PATH\"" >> "$HOME/.bashrc"
+            fi
         fi
     fi
     
@@ -565,6 +598,7 @@ check_health() {
     # Check tmux
     if command -v tmux &> /dev/null; then
         log_info "Tmux version: $(tmux -V)"
+        log_info "Tmux prefix key: backtick (\`)"
     else
         log_warning "Tmux not found"
     fi
@@ -588,6 +622,18 @@ check_health() {
         log_info "Lazygit version: $(lazygit --version | head -n1)"
     else
         log_warning "Lazygit not found"
+    fi
+    
+    # Check Node.js
+    if command -v node &> /dev/null; then
+        log_info "Node.js version: $(node --version)"
+        if [ -n "$NVM_DIR" ]; then
+            log_info "Node.js managed by nvm"
+        else
+            log_info "Node.js managed by system package manager"
+        fi
+    else
+        log_warning "Node.js not found"
     fi
     
     # Check Claude Code
@@ -619,8 +665,12 @@ full_install() {
     check_health
     
     log_info "GoodTerminal installation completed successfully!"
-    log_info "Please restart your shell or run 'source $SHELL_PROFILE' to apply configurations."
-    log_info "For tmux, you may need to press prefix + I (Ctrl-a + I) to install plugins on first run."
+    log_info ""
+    log_info "IMPORTANT: The tmux prefix key is the backtick (\`)"
+    log_info "Example: To reload config, press \` then r"
+    log_info ""
+    log_info "Please restart your shell to apply configurations."
+    log_info "For tmux, you may need to press prefix + I (\` + I) to install plugins on first run."
     log_info ""
     log_info "IMPORTANT - AI Tools Setup:"
     log_info "1. For AI autocompletion in Neovim:"
@@ -821,6 +871,11 @@ main() {
                 ;;
             --purge)
                 purge_and_reinstall
+                ;;
+            --configure-only)
+                configure_installations
+                update_plugins
+                check_health
                 ;;
             *)
                 echo "Usage: $0 [option]"

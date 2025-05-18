@@ -87,7 +87,7 @@ claude help            # View available commands
 - Intuitive pane/window management
 - Session persistence
 - Status bar with essential info
-- Prefix key: `<Ctrl-a>`
+- Prefix key: ` (backtick)
 
 ### Mosh Configuration
 - Extended timeout settings
@@ -119,6 +119,11 @@ claude help            # View available commands
 - Easy authentication for both tools
 
 ## 🔧 Usage
+
+### Keyboard Shortcuts
+For a complete list of keyboard shortcuts and keybindings, see [KEYBINDINGS.md](KEYBINDINGS.md).
+
+**Note**: Tmux uses backtick (`) as the prefix key instead of the default Ctrl-b.
 
 ### Interactive Menu (Recommended)
 ```bash
@@ -194,7 +199,7 @@ cd /path/to/goodterminal
 - Check `:checkhealth` for issues
 
 ### Tmux plugins not working
-- Press `<prefix>I` (Ctrl-a + I) to install plugins
+- Press `<prefix>I` (` + I) to install plugins
 - Restart tmux
 
 ### Navigation not working
@@ -215,9 +220,9 @@ cd /path/to/goodterminal
 - These work in both vim and tmux for seamless navigation
 
 ### Tmux Prefix
-- The prefix key in tmux is `Ctrl-a`
-- For tmux commands: press Ctrl+a, release, then press the next key
-- Example: `<prefix>r` = Ctrl+a, then r (reloads config)
+- The prefix key in tmux is ` (backtick)
+- For tmux commands: press ` (backtick), then press the next key
+- Example: `<prefix>r` = `, then r (reloads config)
 
 ## 🔗 Tools & Technologies
 
