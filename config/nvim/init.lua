@@ -67,6 +67,45 @@ require("lazy").setup({
     end,
   },
   
+  -- Bufferline - shows buffers as tabs
+  {
+    'akinsho/bufferline.nvim',
+    version = "*",
+    dependencies = 'nvim-tree/nvim-web-devicons',
+    config = function()
+      require("bufferline").setup({
+        options = {
+          mode = "buffers",
+          style_preset = require("bufferline").style_preset.default,
+          themable = true,
+          diagnostics = "nvim_lsp",
+          diagnostics_indicator = function(count, level)
+            local icon = level:match("error") and " " or " "
+            return " " .. icon .. count
+          end,
+          offsets = {
+            {
+              filetype = "NvimTree",
+              text = "File Explorer",
+              text_align = "center",
+              separator = true
+            }
+          },
+          separator_style = "slant",
+          always_show_bufferline = true,
+          show_buffer_close_icons = true,
+          show_close_icon = true,
+          show_tab_indicators = true,
+          persist_buffer_sort = true,
+          enforce_regular_tabs = false,
+          max_name_length = 18,
+          max_prefix_length = 15,
+          tab_size = 18,
+        }
+      })
+    end,
+  },
+  
   -- File explorer
   {
     'nvim-tree/nvim-tree.lua',
@@ -78,9 +117,21 @@ require("lazy").setup({
         },
         renderer = {
           group_empty = true,
+          icons = {
+            show = {
+              git = true,
+            },
+          },
         },
         filters = {
           dotfiles = false,
+          git_ignored = false,  -- Show git ignored files
+        },
+        git = {
+          enable = true,
+          ignore = false,  -- Show git ignored files
+          show_on_dirs = true,
+          show_on_open_dirs = true,
         },
         actions = {
           change_dir = {
@@ -275,27 +326,6 @@ require("lazy").setup({
     cond = function()
       return vim.env.SKIP_WINDSURF_AUTH ~= "1"
     end,
-    config = function()
-      -- Disable default bindings to avoid conflicts
-      vim.g.windsurf_disable_keybindings = 1
-      
-      -- Custom keybindings
-      vim.keymap.set('i', '<Tab>', function()
-        return vim.fn['windsurf#Accept']()
-      end, { expr = true, silent = true })
-      
-      vim.keymap.set('i', '<C-e>', function()
-        return vim.fn['windsurf#Dismiss']()
-      end, { expr = true, silent = true })
-      
-      vim.keymap.set('i', '<M-]>', function()
-        return vim.fn['windsurf#Next']()
-      end, { expr = true, silent = true })
-      
-      vim.keymap.set('i', '<M-[>', function()
-        return vim.fn['windsurf#Previous']()
-      end, { expr = true, silent = true })
-    end,
   },
 })
 
@@ -338,6 +368,19 @@ map('n', '<leader>bn', ':bnext<CR>', opts)
 map('n', '<leader>bp', ':bprevious<CR>', opts)
 map('n', '<leader>bd', ':bdelete<CR>', opts)
 
+-- Bufferline specific navigation
+map('n', '<Tab>', ':BufferLineCycleNext<CR>', opts)
+map('n', '<S-Tab>', ':BufferLineCyclePrev<CR>', opts)
+map('n', '<leader>1', ':BufferLineGoToBuffer 1<CR>', opts)
+map('n', '<leader>2', ':BufferLineGoToBuffer 2<CR>', opts)
+map('n', '<leader>3', ':BufferLineGoToBuffer 3<CR>', opts)
+map('n', '<leader>4', ':BufferLineGoToBuffer 4<CR>', opts)
+map('n', '<leader>5', ':BufferLineGoToBuffer 5<CR>', opts)
+map('n', '<leader>6', ':BufferLineGoToBuffer 6<CR>', opts)
+map('n', '<leader>7', ':BufferLineGoToBuffer 7<CR>', opts)
+map('n', '<leader>8', ':BufferLineGoToBuffer 8<CR>', opts)
+map('n', '<leader>9', ':BufferLineGoToBuffer 9<CR>', opts)
+
 -- Clear search highlighting
 map('n', '<leader>nh', ':nohl<CR>', opts)
 
@@ -352,3 +395,11 @@ map('n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
 map('n', '<leader>ca', '<Cmd>lua vim.lsp.buf.code_action()<CR>', opts)
 map('n', '<leader>rn', '<Cmd>lua vim.lsp.buf.rename()<CR>', opts)
 map('n', '<leader>f', '<Cmd>lua vim.lsp.buf.format()<CR>', opts)
+
+-- Auto-open nvim-tree when starting nvim
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    -- Open nvim-tree
+    require("nvim-tree.api").tree.open()
+  end,
+})
