@@ -147,7 +147,7 @@ require("lazy").setup({
     config = function()
       require('mason').setup()
       require('mason-lspconfig').setup({
-        ensure_installed = { 'lua_ls', 'pyright', 'tsserver', 'bashls' },
+        ensure_installed = { 'lua_ls', 'pyright', 'ts_ls', 'bashls' },
       })
       
       local lspconfig = require('lspconfig')
@@ -169,7 +169,7 @@ require("lazy").setup({
       lspconfig.pyright.setup({ capabilities = capabilities })
       
       -- JavaScript/TypeScript
-      lspconfig.tsserver.setup({ capabilities = capabilities })
+      lspconfig.ts_ls.setup({ capabilities = capabilities })
       
       -- Bash
       lspconfig.bashls.setup({ capabilities = capabilities })
@@ -222,7 +222,7 @@ require("lazy").setup({
     build = ':TSUpdate',
     config = function()
       require('nvim-treesitter.configs').setup({
-        ensure_installed = { 'lua', 'vim', 'vimdoc', 'python', 'javascript', 'typescript', 'bash' },
+        ensure_installed = { 'lua', 'vim', 'vimdoc', 'python', 'javascript', 'typescript', 'tsx', 'bash', 'json' },
         auto_install = true,
         highlight = {
           enable = true,
