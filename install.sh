@@ -408,15 +408,22 @@ update_plugins() {
     if command -v zsh &> /dev/null && [ -d "$HOME/.oh-my-zsh" ]; then
         log_info "Updating oh-my-zsh and plugins..."
         
-        # Update oh-my-zsh
-        zsh -c "source $HOME/.zshrc && omz update --unattended" || true
+        # Update oh-my-zsh using the upgrade script
+        if [ -f "$HOME/.oh-my-zsh/tools/upgrade.sh" ]; then
+            log_info "Running oh-my-zsh upgrade..."
+            ZSH="$HOME/.oh-my-zsh" zsh "$HOME/.oh-my-zsh/tools/upgrade.sh"
+        else
+            log_warning "oh-my-zsh upgrade script not found, skipping oh-my-zsh update"
+        fi
         
         # Update custom plugins
         if [ -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]; then
+            log_info "Updating zsh-autosuggestions..."
             cd "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" && git pull
         fi
         
         if [ -d "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" ]; then
+            log_info "Updating zsh-syntax-highlighting..."
             cd "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" && git pull
         fi
     fi
