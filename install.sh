@@ -231,6 +231,41 @@ install_fzf_integration() {
     fi
 }
 
+# Check and install clipboard utilities
+check_and_install_clipboard_utils() {
+    log_info "Checking for clipboard utilities..."
+    
+    local clipboard_found=false
+    if command -v xclip &> /dev/null || command -v xsel &> /dev/null || command -v wl-copy &> /dev/null; then
+        clipboard_found=true
+    fi
+    
+    if [[ "$OSTYPE" == "darwin"* ]] && command -v pbcopy &> /dev/null; then
+        clipboard_found=true
+    fi
+    
+    if [ "$clipboard_found" = false ]; then
+        log_info "Installing missing clipboard utilities for tmux-yank..."
+        if [[ "$OS" == "debian" ]]; then
+            # Install xclip for X11 clipboard support
+            run_apt_command sudo $PKG_INSTALL xclip
+            # Also install wl-clipboard for Wayland support
+            run_apt_command sudo $PKG_INSTALL wl-clipboard
+        elif [[ "$OS" == "rhel" ]]; then
+            sudo $PKG_INSTALL xclip
+            # Try to install wl-clipboard if available
+            sudo $PKG_INSTALL wl-clipboard || log_warning "wl-clipboard not available in repos"
+        elif [[ "$OS" == "arch" ]]; then
+            sudo $PKG_INSTALL xclip wl-clipboard
+        elif [[ "$OS" == "macos" ]]; then
+            # macOS has pbcopy/pbpaste built-in, but install reattach-to-user-namespace for older versions
+            $PKG_INSTALL reattach-to-user-namespace || true
+        fi
+    else
+        log_info "Clipboard utilities already installed"
+    fi
+}
+
 # Install tmux
 install_tmux() {
     log_info "Installing tmux..."
@@ -254,6 +289,9 @@ install_tmux() {
     elif [[ "$OS" == "macos" ]]; then
         $PKG_INSTALL tmux
     fi
+    
+    # Install clipboard utilities for tmux-yank
+    check_and_install_clipboard_utils
     
     # Install TPM (Tmux Plugin Manager)
     if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
@@ -684,6 +722,31 @@ check_health() {
         log_warning "Tmux not found"
     fi
     
+    # Check clipboard utilities for tmux-yank
+    local clipboard_found=false
+    if command -v xclip &> /dev/null; then
+        log_info "Clipboard utility: xclip (X11)"
+        clipboard_found=true
+    fi
+    if command -v xsel &> /dev/null; then
+        log_info "Clipboard utility: xsel (X11)"
+        clipboard_found=true
+    fi
+    if command -v wl-copy &> /dev/null; then
+        log_info "Clipboard utility: wl-clipboard (Wayland)"
+        clipboard_found=true
+    fi
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        if command -v pbcopy &> /dev/null; then
+            log_info "Clipboard utility: pbcopy (macOS)"
+            clipboard_found=true
+        fi
+    fi
+    if [ "$clipboard_found" = false ]; then
+        log_warning "No clipboard utility found - tmux-yank will not work!"
+        log_warning "Install xclip (X11) or wl-clipboard (Wayland)"
+    fi
+    
     # Check nvim
     if command -v nvim &> /dev/null; then
         log_info "Neovim version: $(nvim --version | head -n1)"
@@ -768,7 +831,12 @@ full_install() {
 update_only() {
     log_info "Updating GoodTerminal..."
     
+    detect_os
     update_repo
+    
+    # Check and install missing clipboard utilities
+    check_and_install_clipboard_utils
+    
     configure_installations
     update_plugins
     check_health
