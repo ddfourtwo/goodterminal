@@ -183,6 +183,12 @@ install_dependencies() {
     
     # Install fzf shell integration
     install_fzf_integration
+    
+    # Install Rust/Cargo if not already installed
+    install_rust
+    
+    # Install TWM (Tmux Workspace Manager)
+    install_twm
 }
 
 # Install mosh
@@ -435,6 +441,57 @@ install_nvim() {
     fi
     
     log_info "Neovim installed: $(nvim --version | head -n1)"
+}
+
+# Install Rust and Cargo
+install_rust() {
+    if ! command -v cargo &> /dev/null; then
+        log_info "Installing Rust and Cargo..."
+        
+        if [[ "$OS" == "debian" ]] || [[ "$OS" == "rhel" ]] || [[ "$OS" == "arch" ]]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            source "$HOME/.cargo/env"
+        elif [[ "$OS" == "macos" ]]; then
+            $PKG_INSTALL rustup-init
+            rustup-init -y
+            source "$HOME/.cargo/env"
+        fi
+        
+        log_info "Rust installed: $(rustc --version)"
+    else
+        log_info "Rust already installed: $(rustc --version)"
+    fi
+}
+
+# Install TWM (Tmux Workspace Manager)
+install_twm() {
+    log_info "Installing TWM (Tmux Workspace Manager)..."
+    
+    # Ensure Rust/Cargo is in PATH
+    if [ -f "$HOME/.cargo/env" ]; then
+        source "$HOME/.cargo/env"
+    fi
+    
+    if ! command -v twm &> /dev/null; then
+        if command -v cargo &> /dev/null; then
+            log_info "Installing TWM via cargo..."
+            cargo install twm
+            log_info "TWM installed: $(twm --version 2>&1 | head -n1)"
+        else
+            log_warning "Cargo not found. Cannot install TWM."
+        fi
+    else
+        log_info "TWM already installed: $(twm --version 2>&1 | head -n1)"
+    fi
+    
+    # Create TWM configuration directory
+    mkdir -p "$HOME/.config/twm"
+    
+    # Link TWM configuration
+    if [ ! -f "$HOME/.config/twm/twm.yaml" ]; then
+        log_info "Setting up TWM configuration..."
+        ln -sf "$SCRIPT_DIR/config/twm/twm.yaml" "$HOME/.config/twm/twm.yaml"
+    fi
 }
 
 # Configure installations
@@ -722,6 +779,13 @@ check_health() {
         log_warning "Tmux not found"
     fi
     
+    # Check TWM
+    if command -v twm &> /dev/null; then
+        log_info "TWM (Tmux Workspace Manager) installed: $(twm --version 2>&1 | head -n1)"
+    else
+        log_warning "TWM not found"
+    fi
+    
     # Check clipboard utilities for tmux-yank
     local clipboard_found=false
     if command -v xclip &> /dev/null; then
@@ -816,6 +880,12 @@ full_install() {
     log_info ""
     log_info "Please restart your shell to apply configurations."
     log_info "For tmux, you may need to press prefix + I (\` + I) to install plugins on first run."
+    log_info ""
+    log_info "TMux Workspace Manager (TWM) Usage:"
+    log_info "- Press \` then w to open workspace selector"
+    log_info "- Press \` then W to open workspace selector with layout picker"
+    log_info "- Press \` then T to select existing sessions"
+    log_info "- To detach from tmux (preserving session): \` then d"
     log_info ""
     log_info "IMPORTANT - AI Tools Setup:"
     log_info "1. For AI autocompletion in Neovim:"

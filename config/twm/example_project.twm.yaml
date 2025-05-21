@@ -1,0 +1,33 @@
+# Example project-specific TWM configuration
+# Place this as .twm.yaml in your project directory
+
+# The layout to use for this specific project
+layout: "custom"
+
+# Define a custom layout specifically for this project
+layouts:
+  custom:
+    # Main editor window
+    - name: "editor"
+      command: "nvim"
+    # Server window that runs npm start
+    - name: "server"
+      command: "npm start"
+    # Test window for running tests
+    - name: "tests"
+      command: "echo 'Run tests with: npm test'"
+    # Terminal for git operations
+    - name: "git"
+      command: "git status"
+
+# Environment variables to set for this project
+env:
+  NODE_ENV: "development"
+  DEBUG: "app:*"
+
+# Other TWM settings for this project
+settings:
+  # Set the window title
+  window_title: "My Project"
+  # Customize session name
+  session_name: "my-project"

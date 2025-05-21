@@ -70,6 +70,8 @@ claude help            # View available commands
 
 ## 📋 What's Included
 
+For detailed information on session management, see [Session Management](docs/session-management.md).
+
 ### Neovim Configuration
 - AI-powered autocompletion with Windsurf (Codeium)
 - Full LSP setup with traditional autocompletion
@@ -77,16 +79,19 @@ claude help            # View available commands
 - Treesitter for syntax highlighting
 - File explorer with nvim-tree
 - Git integration with lazygit and gitsigns
+- Session persistence via persistence.nvim
 - Beautiful OneDark theme
 - Leader key: `<Space>`
 - Git commands: `<leader>gg` for lazygit
+- Session management: `<leader>qs` to restore session
 - AI completion: `Tab` to accept, `Ctrl-e` to dismiss
 
 ### Tmux Configuration
 - Mouse support
 - Intuitive pane/window management
-- Session persistence
+- Session persistence via TWM (Tmux Workspace Manager)
 - Modern Dracula theme with system monitoring
+- Project-specific workspace layouts with .twm.yaml
 - Prefix key: ` (backtick)
 
 ### Mosh Configuration
@@ -223,6 +228,7 @@ cd /path/to/goodterminal
 - The prefix key in tmux is ` (backtick)
 - For tmux commands: press ` (backtick), then press the next key
 - Example: `<prefix>r` = `, then r (reloads config)
+- Example: `<prefix>d` = `, then d (detaches from session, preserving it)
 
 ## 🔗 Tools & Technologies
 
@@ -249,6 +255,7 @@ Here are all the tools included in GoodTerminal with links to their repositories
 - [nvim-autopairs](https://github.com/windwp/nvim-autopairs) - Auto close brackets
 - [vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator) - Seamless navigation
 - [lazygit.nvim](https://github.com/kdheepak/lazygit.nvim) - Lazygit integration
+- [persistence.nvim](https://github.com/folke/persistence.nvim) - Session management
 - [onedark.nvim](https://github.com/navarasu/onedark.nvim) - Color scheme
 
 ### Tmux Plugins
@@ -260,6 +267,7 @@ Here are all the tools included in GoodTerminal with links to their repositories
 ### Additional Tools
 - [lazygit](https://github.com/jesseduffield/lazygit) - Terminal UI for git
 - [ripgrep](https://github.com/BurntSushi/ripgrep) - Fast text search
+- [TWM](https://github.com/vinnymeller/twm) - Tmux Workspace Manager for project sessions
 - [Claude Code](https://github.com/anthropics/claude-code) - Anthropic's official CLI for Claude
 
 ## 🤝 Contributing
