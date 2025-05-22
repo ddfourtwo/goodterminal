@@ -14,6 +14,10 @@ echo "Current process tree:"
 pstree -ps $$ 2>/dev/null || ps -f -p $PPID 2>/dev/null
 
 echo -e "\n=== Testing mosh detection ==="
+echo "MOSH_KEY present: $([ -n "$MOSH_KEY" ] && echo "YES" || echo "NO")"
+echo "Process check result:"
+ps -p $PPID 2>/dev/null | grep mosh-server || echo "  No mosh-server found in parent"
+
 is_mosh_session() {
     [ -n "$MOSH_KEY" ] || ps -p $PPID 2>/dev/null | grep -q mosh-server
 }
