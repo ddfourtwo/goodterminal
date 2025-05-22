@@ -522,12 +522,6 @@ configure_installations() {
     fi
     ln -sf "$SCRIPT_DIR/config/tmux/tmux.conf" "$HOME/.tmux.conf"
     
-    # Copy tmux clipboard scripts
-    mkdir -p "$HOME/.tmux"
-    cp "$SCRIPT_DIR/config/tmux/clipboard-copy.sh" "$HOME/.tmux/clipboard-copy.sh"
-    cp "$SCRIPT_DIR/config/tmux/osc52-copy.sh" "$HOME/.tmux/osc52-copy.sh"
-    chmod +x "$HOME/.tmux/clipboard-copy.sh"
-    chmod +x "$HOME/.tmux/osc52-copy.sh"
     
     # Shell configuration with oh-my-zsh
     log_info "Setting up shell configuration with oh-my-zsh..."
