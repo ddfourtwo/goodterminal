@@ -522,6 +522,11 @@ configure_installations() {
     fi
     ln -sf "$SCRIPT_DIR/config/tmux/tmux.conf" "$HOME/.tmux.conf"
     
+    # Copy SSH-aware clipboard script
+    mkdir -p "$HOME/.tmux"
+    cp "$SCRIPT_DIR/config/tmux/ssh-copy.sh" "$HOME/.tmux/ssh-copy.sh"
+    chmod +x "$HOME/.tmux/ssh-copy.sh"
+    
     
     # Shell configuration with oh-my-zsh
     log_info "Setting up shell configuration with oh-my-zsh..."
