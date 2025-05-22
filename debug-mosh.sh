@@ -1,0 +1,37 @@
+#!/bin/bash
+
+echo "=== Environment Variables ==="
+echo "SSH_CLIENT: [$SSH_CLIENT]"
+echo "SSH_TTY: [$SSH_TTY]"
+echo "SSH_CONNECTION: [$SSH_CONNECTION]"
+echo "MOSH_KEY: [${MOSH_KEY:0:10}...]"  # Only show first 10 chars for security
+echo "TERM: [$TERM]"
+echo "TMUX: [$TMUX]"
+
+echo -e "\n=== Process Information ==="
+echo "PPID: $PPID"
+echo "Current process tree:"
+pstree -ps $$ 2>/dev/null || ps -f -p $PPID 2>/dev/null
+
+echo -e "\n=== Testing mosh detection ==="
+is_mosh_session() {
+    [ -n "$MOSH_KEY" ] || ps -p $PPID 2>/dev/null | grep -q mosh-server
+}
+
+if is_mosh_session; then
+    echo "✅ Mosh session detected"
+else
+    echo "❌ Mosh session NOT detected"
+fi
+
+echo -e "\n=== Testing SSH detection ==="
+if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CONNECTION" ]; then
+    echo "✅ SSH session detected"
+else
+    echo "❌ SSH session NOT detected"
+fi
+
+echo -e "\n=== Testing tmux-yank copy command ==="
+echo "Copy command setting: $(tmux show-option -gv @override_copy_command 2>/dev/null)"
+echo "Current copy script path: $HOME/.tmux/ssh-copy.sh"
+echo "Script exists: $([ -f "$HOME/.tmux/ssh-copy.sh" ] && echo "YES" || echo "NO")"
