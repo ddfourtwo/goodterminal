@@ -1,13 +1,18 @@
 #!/bin/bash
 
-# SSH-aware copy script for tmux-yank
-# Uses OSC 52 for SSH sessions, local clipboard otherwise
+# Remote-aware copy script for tmux-yank
+# Uses OSC 52 for SSH/mosh sessions, local clipboard otherwise
 
 input=$(cat)
 
-# Check if we're in SSH
-if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CONNECTION" ]; then
-    # SSH session - use OSC 52
+# Check if we're in SSH or mosh
+# For mosh detection, check for MOSH_KEY or use process tree analysis
+is_mosh_session() {
+    [ -n "$MOSH_KEY" ] || ps -p $PPID 2>/dev/null | grep -q mosh-server
+}
+
+if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CONNECTION" ] || is_mosh_session; then
+    # Remote session (SSH or mosh) - use OSC 52
     encoded=$(printf '%s' "$input" | base64 | tr -d '\n')
     
     if [ -n "$TMUX" ]; then

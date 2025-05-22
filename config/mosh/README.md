@@ -26,6 +26,7 @@ source /path/to/goodterminal/config/mosh/config
 - `mosh_cleanup` function: Clean up old mosh-server processes
 - Aliases for common mosh operations
 - Optimized timeout and display settings
+- Full clipboard integration with tmux-yank (OSC 52 support)
 
 ## Example Usage
 
