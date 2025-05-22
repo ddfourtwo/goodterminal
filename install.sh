@@ -988,6 +988,11 @@ update_only() {
     # Check and install missing clipboard utilities
     check_and_install_clipboard_utils
     
+    # Ensure Rust is installed for TWM
+    install_rust
+    # Ensure TWM is installed
+    install_twm
+    
     configure_installations
     update_plugins
     check_health
@@ -1174,6 +1179,10 @@ main() {
             --update-all|-a)
                 update_repo
                 update_packages
+                # Ensure Rust is installed for TWM
+                install_rust
+                # Ensure TWM is installed
+                install_twm
                 configure_installations
                 update_plugins
                 check_health
