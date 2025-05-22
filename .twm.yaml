@@ -1,0 +1,10 @@
+# Generated TWM local configuration for session: goodterminal-4
+# Created: Thu May 22 15:32:10 WEST 2025
+
+layout: "saved"
+
+layouts:
+  saved:
+    commands:
+      - "node"
+      - "echo 'Window: zsh'"
