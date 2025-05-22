@@ -7,74 +7,27 @@ search_paths:
   - ~/github
   - ~/work
   - ~/code
-  # Add more paths as needed
 
-# File patterns to identify a workspace
-workspace_patterns:
-  - ".git"
-  - "package.json"
-  - "Cargo.toml"
-  - "go.mod"
-  - "pyproject.toml"
-  - "requirements.txt"
-  - "Makefile"
-  - "CMakeLists.txt"
-  - "docker-compose.yml"
-  - ".hg"
-  - ".svn"
+# Only show workspaces that have a .twm.yaml file
+workspace_definitions:
+  - name: "saved"
+    has_any_file: [".twm.yaml"]
+    default_layout: "saved"
 
-# Default layout to use
-default_layout: "dev"
+# Maximum depth to search for workspaces
+max_search_depth: 3
 
 # Define workspace layouts
 layouts:
-  # Development layout with editor, terminal, and optional server
-  dev:
-    # Main window with editor
-    - name: "editor"
-      command: "nvim"
-    # Terminal window
-    - name: "term"
-    # Window for running servers/jobs (optional)
-    - name: "server"
-      focus: false
-  
-  # Simple layout with just a terminal window  
-  simple:
-    - name: "terminal"
-    
-  # Python development specific layout
-  python:
-    - name: "editor"
-      command: "nvim"
-    - name: "ipython"
-      command: "ipython"
-    - name: "shell"
-      
-  # Web development layout
-  web:
-    - name: "editor"
-      command: "nvim"
-    - name: "terminal"
-    - name: "server"
-      command: "echo 'Start your development server here'"
-    - name: "browser"
-      focus: false
+  - name: "saved"
+    commands:
+      - "echo 'Loading saved workspace...'"
 
-# Settings for session names
-session_name_settings:
-  # Maximum session name length
-  max_length: 16
-  # Use full project path (false) or just project directory name (true)
-  use_basename: true
-  # Remove leading/trailing special characters
-  remove_special: true
+# Number of path components to use for session names
+session_name_path_components: 1
 
-# Other settings
-settings:
-  # When set to true, TWM will attach to an existing session instead of creating a new one
-  attach_if_exists: true
-  # Create sessions in detached state
-  detached: false
-  # Show debug output
-  debug: false
+# Path components to exclude from session names
+exclude_path_components: []
+
+# Whether to follow symbolic links when searching
+follow_links: false
