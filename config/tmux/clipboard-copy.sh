@@ -11,8 +11,14 @@ if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CONNECTION" ]; then
     # Encode content in base64 for OSC 52
     encoded=$(printf '%s' "$input" | base64 | tr -d '\n')
     
-    # Send OSC 52 escape sequence to copy to local clipboard
-    printf '\033]52;c;%s\033\\' "$encoded" > /dev/tty
+    # Send OSC 52 escape sequence - use proper tmux passthrough
+    if [ -n "$TMUX" ]; then
+        # Inside tmux, use passthrough sequence
+        printf '\033Ptmux;\033\033]52;c;%s\033\033\\\033\\' "$encoded"
+    else
+        # Direct to terminal
+        printf '\033]52;c;%s\033\\' "$encoded"
+    fi
     
     # Also copy to remote clipboard if available
     if command -v xsel &> /dev/null; then
