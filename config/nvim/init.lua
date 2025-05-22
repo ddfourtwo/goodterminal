@@ -59,9 +59,10 @@ require("lazy").setup({
     config = function()
       require('lualine').setup({
         options = {
-          theme = 'onedark',
+          theme = 'vscode',
           component_separators = { left = '', right = ''},
           section_separators = { left = '', right = ''},
+          icons_enabled = true,
         }
       })
     end,

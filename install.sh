@@ -609,6 +609,10 @@ configure_installations() {
     mkdir -p "$HOME/.config/lazygit"
     cp "$SCRIPT_DIR/config/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
     
+    # Install fonts
+    log_info "Installing Nerd Fonts for VSCode consistency..."
+    "$SCRIPT_DIR/config/fonts/install-fonts.sh"
+    
     # Shell configuration with oh-my-zsh
     log_info "Setting up shell configuration with oh-my-zsh..."
     
