@@ -594,11 +594,13 @@ configure_installations() {
     fi
     ln -sf "$SCRIPT_DIR/config/tmux/tmux.conf" "$HOME/.tmux.conf"
     
-    # Copy SSH-aware clipboard script and theme
+    # Copy SSH-aware clipboard script, memory script, and theme
     mkdir -p "$HOME/.tmux"
     mkdir -p "$HOME/.config/tmux"
     cp "$SCRIPT_DIR/config/tmux/ssh-copy.sh" "$HOME/.tmux/ssh-copy.sh"
     chmod +x "$HOME/.tmux/ssh-copy.sh"
+    cp "$SCRIPT_DIR/config/tmux/memory-usage.sh" "$HOME/.tmux/memory-usage.sh"
+    chmod +x "$HOME/.tmux/memory-usage.sh"
     cp "$SCRIPT_DIR/config/tmux/vscode-theme.conf" "$HOME/.config/tmux/vscode-theme.conf"
     
     # Configure SSH for OSC 52 clipboard support
