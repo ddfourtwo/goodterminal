@@ -203,7 +203,17 @@ install_mosh() {
         $PKG_INSTALL mosh
     fi
     
-    log_info "Mosh installed: $(mosh --version | head -n1)"
+    # Check mosh version for OSC 52 clipboard support
+    if command -v mosh &> /dev/null; then
+        mosh_version=$(mosh --version | head -n1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' | head -n1)
+        log_info "Mosh installed: $(mosh --version | head -n1)"
+        
+        # Warn if version is older than 1.4.0 (no OSC 52 support)
+        if [[ $(echo "$mosh_version 1.4.0" | tr " " "\n" | sort -V | head -n1) == "$mosh_version" ]] && [[ "$mosh_version" != "1.4.0" ]]; then
+            log_warning "Mosh version $mosh_version detected. OSC 52 clipboard support requires mosh 1.4.0+"
+            log_warning "Tmux clipboard yanking will only work over SSH, not mosh, until mosh is upgraded"
+        fi
+    fi
 }
 
 # Install fzf shell integration
