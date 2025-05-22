@@ -478,7 +478,23 @@ install_twm() {
             cargo install twm
             log_info "TWM installed: $(twm --version 2>&1 | head -n1)"
         else
-            log_warning "Cargo not found. Cannot install TWM."
+            log_error "Cargo not found. TWM requires Rust/Cargo to be installed."
+            log_info "Installing Rust/Cargo first..."
+            install_rust
+            
+            # Source cargo environment again
+            if [ -f "$HOME/.cargo/env" ]; then
+                source "$HOME/.cargo/env"
+            fi
+            
+            if command -v cargo &> /dev/null; then
+                log_info "Installing TWM via cargo..."
+                cargo install twm
+                log_info "TWM installed: $(twm --version 2>&1 | head -n1)"
+            else
+                log_error "Failed to install Rust/Cargo. TWM installation failed."
+                exit 1
+            fi
         fi
     else
         log_info "TWM already installed: $(twm --version 2>&1 | head -n1)"
@@ -847,7 +863,8 @@ check_health() {
     if command -v twm &> /dev/null; then
         log_info "TWM (Tmux Workspace Manager) installed: $(twm --version 2>&1 | head -n1)"
     else
-        log_warning "TWM not found"
+        log_error "TWM not found - this is required for GoodTerminal"
+        log_info "Run './install.sh --install' or './install.sh --update-all' to install TWM"
     fi
     
     # Check clipboard utilities for tmux-yank
