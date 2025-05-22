@@ -5,6 +5,9 @@
 
 input=$(cat)
 
+# Debug logging
+echo "$(date): ssh-copy.sh called with input length: ${#input}" >> /tmp/tmux-copy-debug.log
+
 # Check if we're in mosh or SSH (check mosh first since it may have SSH vars too)
 # For mosh detection, check multiple indicators
 is_mosh_session() {
@@ -29,6 +32,7 @@ is_mosh_session() {
 
 # Check mosh first, then SSH
 if is_mosh_session || [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CONNECTION" ]; then
+    echo "$(date): Using OSC 52 for remote session" >> /tmp/tmux-copy-debug.log
     # Remote session (SSH or mosh) - use OSC 52
     encoded=$(printf '%s' "$input" | base64 | tr -d '\n')
     
@@ -40,6 +44,7 @@ if is_mosh_session || [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CO
         printf '\033]52;c;%s\033\\' "$encoded"
     fi
 else
+    echo "$(date): Using local clipboard" >> /tmp/tmux-copy-debug.log
     # Local session - use system clipboard
     if command -v pbcopy &> /dev/null; then
         printf '%s' "$input" | pbcopy
