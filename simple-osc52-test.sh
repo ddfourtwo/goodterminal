@@ -29,10 +29,10 @@ encoded=$(printf '%s' "$test_text" | base64 | tr -d '\n')
 # Send OSC 52 - test both with and without tmux
 if [ -n "$TMUX" ]; then
     echo "Using tmux-wrapped OSC 52..."
-    printf '\033Ptmux;\033\033]52;c;%s\033\033\\\033\\' "$encoded"
+    printf '\033Ptmux;\033\033]52;c;%s\033\033\\\033\\' "$encoded" >&2
 else
     echo "Using direct OSC 52..."
-    printf '\033]52;c;%s\033\\' "$encoded"
+    printf '\033]52;c;%s\033\\' "$encoded" >&2
 fi
 
 echo
