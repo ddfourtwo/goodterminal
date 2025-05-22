@@ -94,7 +94,7 @@
   },
   "Custom Command" : "No",
   "ASCII Anti Aliased" : true,
-  "Non Ascii Font" : "CaskaydiaCoveNerdFont-Regular 14",
+  "Non Ascii Font" : "JetBrainsMonoNerdFont-Regular 12",
   "Vertical Spacing" : 1.1,
   "Use Bold Font" : true,
   "Option Key Sends" : 0,
@@ -335,7 +335,7 @@
     "Blue Component" : 0.8,
     "Red Component" : 0.33725490196078434
   },
-  "Normal Font" : "CaskaydiaCoveNerdFont-Regular 14",
+  "Normal Font" : "JetBrainsMonoNerdFont-Regular 12",
   "Ansi 2 Color" : {
     "Green Component" : 0.5843137254901961,
     "Blue Component" : 0.33725490196078434,

@@ -76,29 +76,29 @@ install_fonts() {
     log_info "Installing Nerd Fonts for GoodTerminal..."
     log_info "Font directory: $FONT_DIR"
     
-    # CascadiaCode Nerd Font (VSCode default)
-    local cascadia_base="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1"
+    # JetBrainsMono Nerd Font (Developer favorite)
+    local jetbrains_base="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1"
     
     if [[ "$OS" == "macos" ]]; then
         # Download and extract the zip file
-        if [ ! -f "$FONT_DIR/CascadiaCodeNerdFont-Regular.ttf" ]; then
-            log_info "Downloading CascadiaCode Nerd Font..."
-            curl -fLo "$FONT_DIR/CascadiaCode.zip" "$cascadia_base/CascadiaCode.zip"
+        if [ ! -f "$FONT_DIR/JetBrainsMonoNerdFont-Regular.ttf" ]; then
+            log_info "Downloading JetBrainsMono Nerd Font..."
+            curl -fLo "$FONT_DIR/JetBrainsMono.zip" "$jetbrains_base/JetBrainsMono.zip"
             
             cd "$FONT_DIR"
             log_info "Extracting font files..."
-            unzip -o CascadiaCode.zip "*.ttf"
-            rm CascadiaCode.zip
-            log_info "CascadiaCode Nerd Font installed successfully"
+            unzip -o JetBrainsMono.zip "*.ttf"
+            rm JetBrainsMono.zip
+            log_info "JetBrainsMono Nerd Font installed successfully"
         else
-            log_info "CascadiaCode Nerd Font already installed"
+            log_info "JetBrainsMono Nerd Font already installed"
         fi
     else
         # Linux - install individual font files
-        install_linux_font "$cascadia_base/CascadiaCode/CascadiaCodeNerdFont-Regular.ttf" "CascadiaCodeNerdFont-Regular.ttf"
-        install_linux_font "$cascadia_base/CascadiaCode/CascadiaCodeNerdFont-Bold.ttf" "CascadiaCodeNerdFont-Bold.ttf"
-        install_linux_font "$cascadia_base/CascadiaCode/CascadiaCodeNerdFont-Italic.ttf" "CascadiaCodeNerdFont-Italic.ttf"
-        install_linux_font "$cascadia_base/CascadiaCode/CascadiaCodeNerdFont-BoldItalic.ttf" "CascadiaCodeNerdFont-BoldItalic.ttf"
+        install_linux_font "$jetbrains_base/JetBrainsMono/JetBrainsMonoNerdFont-Regular.ttf" "JetBrainsMonoNerdFont-Regular.ttf"
+        install_linux_font "$jetbrains_base/JetBrainsMono/JetBrainsMonoNerdFont-Bold.ttf" "JetBrainsMonoNerdFont-Bold.ttf"
+        install_linux_font "$jetbrains_base/JetBrainsMono/JetBrainsMonoNerdFont-Italic.ttf" "JetBrainsMonoNerdFont-Italic.ttf"
+        install_linux_font "$jetbrains_base/JetBrainsMono/JetBrainsMonoNerdFont-BoldItalic.ttf" "JetBrainsMonoNerdFont-BoldItalic.ttf"
         
         # Refresh font cache on Linux
         if command -v fc-cache &> /dev/null; then
@@ -116,14 +116,14 @@ install_fonts() {
         log_info "To configure iTerm2:"
         log_info "1. Open iTerm2 Preferences (⌘,)"
         log_info "2. Go to Profiles → Text"
-        log_info "3. Click 'Change Font' and select 'CaskaydiaCove Nerd Font'"
-        log_info "4. Set size to 14 for VSCode consistency"
+        log_info "3. Click 'Change Font' and select 'JetBrainsMono Nerd Font'"
+        log_info "4. Set size to 12 for optimal readability"
         log_info ""
         log_info "Or import the preconfigured profile:"
         log_info "• Profiles → Import JSON → config/iterm2/GoodTerminal-VSCode-Profile.json"
     else
         log_info "Font installed to: $FONT_DIR"
-        log_info "Configure your terminal to use 'CascadiaCode Nerd Font' size 14"
+        log_info "Configure your terminal to use 'JetBrainsMono Nerd Font' size 12"
     fi
 }
 
