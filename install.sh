@@ -613,6 +613,10 @@ configure_installations() {
     chmod +x "$HOME/.tmux/memory-usage.sh"
     cp "$SCRIPT_DIR/config/tmux/vscode-theme.conf" "$HOME/.config/tmux/vscode-theme.conf"
     
+    # Setup port forwarding system
+    log_info "Setting up port forwarding system..."
+    "$SCRIPT_DIR/scripts/setup-port-forwarding.sh"
+    
     # Configure SSH for OSC 52 clipboard support
     configure_ssh_osc52
     
