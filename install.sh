@@ -253,16 +253,16 @@ check_and_install_clipboard_utils() {
     if [ "$clipboard_found" = false ]; then
         log_info "Installing missing clipboard utilities for tmux-yank..."
         if [[ "$OS" == "debian" ]]; then
-            # Install xclip for X11 clipboard support
-            run_apt_command sudo $PKG_INSTALL xclip
+            # Install xclip and xsel for X11 clipboard support
+            run_apt_command sudo $PKG_INSTALL xclip xsel
             # Also install wl-clipboard for Wayland support
             run_apt_command sudo $PKG_INSTALL wl-clipboard
         elif [[ "$OS" == "rhel" ]]; then
-            sudo $PKG_INSTALL xclip
+            sudo $PKG_INSTALL xclip xsel
             # Try to install wl-clipboard if available
             sudo $PKG_INSTALL wl-clipboard || log_warning "wl-clipboard not available in repos"
         elif [[ "$OS" == "arch" ]]; then
-            sudo $PKG_INSTALL xclip wl-clipboard
+            sudo $PKG_INSTALL xclip xsel wl-clipboard
         elif [[ "$OS" == "macos" ]]; then
             # macOS has pbcopy/pbpaste built-in, but install reattach-to-user-namespace for older versions
             $PKG_INSTALL reattach-to-user-namespace || true
@@ -521,6 +521,11 @@ configure_installations() {
         backup_config "$HOME/.tmux.conf"
     fi
     ln -sf "$SCRIPT_DIR/config/tmux/tmux.conf" "$HOME/.tmux.conf"
+    
+    # Copy tmux clipboard script
+    mkdir -p "$HOME/.tmux"
+    cp "$SCRIPT_DIR/config/tmux/clipboard-copy.sh" "$HOME/.tmux/clipboard-copy.sh"
+    chmod +x "$HOME/.tmux/clipboard-copy.sh"
     
     # Shell configuration with oh-my-zsh
     log_info "Setting up shell configuration with oh-my-zsh..."
