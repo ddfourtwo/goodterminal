@@ -594,13 +594,20 @@ configure_installations() {
     fi
     ln -sf "$SCRIPT_DIR/config/tmux/tmux.conf" "$HOME/.tmux.conf"
     
-    # Copy SSH-aware clipboard script
+    # Copy SSH-aware clipboard script and theme
     mkdir -p "$HOME/.tmux"
+    mkdir -p "$HOME/.config/tmux"
     cp "$SCRIPT_DIR/config/tmux/ssh-copy.sh" "$HOME/.tmux/ssh-copy.sh"
     chmod +x "$HOME/.tmux/ssh-copy.sh"
+    cp "$SCRIPT_DIR/config/tmux/vscode-theme.conf" "$HOME/.config/tmux/vscode-theme.conf"
     
     # Configure SSH for OSC 52 clipboard support
     configure_ssh_osc52
+    
+    # Lazygit configuration
+    log_info "Setting up lazygit configuration..."
+    mkdir -p "$HOME/.config/lazygit"
+    cp "$SCRIPT_DIR/config/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
     
     # Shell configuration with oh-my-zsh
     log_info "Setting up shell configuration with oh-my-zsh..."
@@ -854,7 +861,7 @@ check_health() {
     if command -v tmux &> /dev/null; then
         log_info "Tmux version: $(tmux -V)"
         log_info "Tmux prefix key: backtick (\`)"
-        log_info "Tmux theme: Dracula with system monitoring"
+        log_info "Tmux theme: VSCode Dark with system info"
     else
         log_warning "Tmux not found"
     fi
@@ -957,7 +964,7 @@ full_install() {
     log_info ""
     log_info "IMPORTANT: The tmux prefix key is the backtick (\`)"
     log_info "Example: To reload config, press \` then r"
-    log_info "Tmux is configured with the Dracula theme for a modern, beautiful appearance."
+    log_info "All tools are configured with a unified VSCode Dark theme for consistency."
     log_info ""
     log_info "Please restart your shell to apply configurations."
     log_info "For tmux, you may need to press prefix + I (\` + I) to install plugins on first run."

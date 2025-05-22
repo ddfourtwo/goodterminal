@@ -173,18 +173,22 @@ require("lazy").setup({
     end,
   },
   
-  -- Colorscheme
+  -- VSCode-inspired colorscheme
   {
-    'navarasu/onedark.nvim',
+    'Mofiqul/vscode.nvim',
     lazy = false,
     priority = 1000,
     config = function()
-      require('onedark').setup({
-        style = 'dark',
+      require('vscode').setup({
         transparent = false,
-        term_colors = true,
+        italic_comments = true,
+        disable_nvimtree_bg = true,
+        color_overrides = {
+          vscBack = '#1e1e1e',
+          vscFront = '#d4d4d4',
+        },
       })
-      require('onedark').load()
+      require('vscode').load()
     end,
   },
   
