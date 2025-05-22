@@ -5,13 +5,30 @@
 
 input=$(cat)
 
-# Check if we're in SSH or mosh
-# For mosh detection, check for MOSH_KEY or use process tree analysis
+# Check if we're in mosh or SSH (check mosh first since it may have SSH vars too)
+# For mosh detection, check multiple indicators
 is_mosh_session() {
-    [ -n "$MOSH_KEY" ] || ps -p $PPID 2>/dev/null | grep -q mosh-server
+    # Check for MOSH_KEY environment variable
+    [ -n "$MOSH_KEY" ] && return 0
+    
+    # Check if any ancestor process is mosh-server
+    local pid=$$
+    while [ $pid -ne 1 ]; do
+        if ps -p $pid -o comm= 2>/dev/null | grep -q mosh-server; then
+            return 0
+        fi
+        pid=$(ps -p $pid -o ppid= 2>/dev/null | tr -d ' ')
+        [ -z "$pid" ] || [ "$pid" = "1" ] && break
+    done
+    
+    # Check if mosh-server is in process tree (fallback)
+    pstree -p $$ 2>/dev/null | grep -q mosh-server && return 0
+    
+    return 1
 }
 
-if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CONNECTION" ] || is_mosh_session; then
+# Check mosh first, then SSH
+if is_mosh_session || [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CONNECTION" ]; then
     # Remote session (SSH or mosh) - use OSC 52
     encoded=$(printf '%s' "$input" | base64 | tr -d '\n')
     

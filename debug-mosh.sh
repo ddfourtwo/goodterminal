@@ -19,7 +19,23 @@ echo "Process check result:"
 ps -p $PPID 2>/dev/null | grep mosh-server || echo "  No mosh-server found in parent"
 
 is_mosh_session() {
-    [ -n "$MOSH_KEY" ] || ps -p $PPID 2>/dev/null | grep -q mosh-server
+    # Check for MOSH_KEY environment variable
+    [ -n "$MOSH_KEY" ] && return 0
+    
+    # Check if any ancestor process is mosh-server
+    local pid=$$
+    while [ $pid -ne 1 ]; do
+        if ps -p $pid -o comm= 2>/dev/null | grep -q mosh-server; then
+            return 0
+        fi
+        pid=$(ps -p $pid -o ppid= 2>/dev/null | tr -d ' ')
+        [ -z "$pid" ] || [ "$pid" = "1" ] && break
+    done
+    
+    # Check if mosh-server is in process tree (fallback)
+    pstree -p $$ 2>/dev/null | grep -q mosh-server && return 0
+    
+    return 1
 }
 
 if is_mosh_session; then
