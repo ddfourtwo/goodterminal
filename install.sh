@@ -494,6 +494,62 @@ install_twm() {
     fi
 }
 
+# Configure SSH for OSC 52 clipboard support
+configure_ssh_osc52() {
+    log_info "Configuring SSH for OSC 52 clipboard support..."
+    
+    # Only configure on client machines (not when running on servers)
+    if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CONNECTION" ]; then
+        log_info "Running on remote server - skipping SSH client configuration"
+        return 0
+    fi
+    
+    local ssh_config="$HOME/.ssh/config"
+    
+    # Create .ssh directory if it doesn't exist
+    mkdir -p "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh"
+    
+    # Backup existing SSH config
+    if [ -f "$ssh_config" ] && ! grep -q "# GoodTerminal SSH OSC 52 configuration" "$ssh_config"; then
+        log_info "Backing up existing SSH config..."
+        cp "$ssh_config" "${ssh_config}.backup.$(date +%s)"
+    fi
+    
+    # Check if GoodTerminal SSH config already exists
+    if grep -q "# GoodTerminal SSH OSC 52 configuration" "$ssh_config" 2>/dev/null; then
+        log_info "GoodTerminal SSH configuration already exists"
+        return 0
+    fi
+    
+    # Add OSC 52 configuration template
+    log_info "Adding SSH OSC 52 configuration template..."
+    cat >> "$ssh_config" << 'EOF'
+
+# GoodTerminal SSH OSC 52 configuration
+# Uncomment and customize the Host sections below for servers where you want OSC 52 clipboard support
+# 
+# Example configuration for a server:
+# Host myserver
+#     HostName your-server.com
+#     User yourusername
+#     IdentityFile ~/.ssh/your-key
+#     # Enable terminal forwarding for OSC sequences
+#     RequestTTY yes
+#     # Forward TERM environment variable  
+#     SendEnv TERM
+#
+# After adding your server configuration:
+# 1. Connect with: ssh myserver
+# 2. Set proper TERM: export TERM=xterm-256color
+# 3. Test OSC 52 clipboard functionality
+
+EOF
+    
+    log_info "SSH OSC 52 configuration template added to $ssh_config"
+    log_info "Edit the file to add your specific server configurations"
+}
+
 # Configure installations
 configure_installations() {
     log_info "Configuring installations..."
@@ -527,6 +583,8 @@ configure_installations() {
     cp "$SCRIPT_DIR/config/tmux/ssh-copy.sh" "$HOME/.tmux/ssh-copy.sh"
     chmod +x "$HOME/.tmux/ssh-copy.sh"
     
+    # Configure SSH for OSC 52 clipboard support
+    configure_ssh_osc52
     
     # Shell configuration with oh-my-zsh
     log_info "Setting up shell configuration with oh-my-zsh..."
