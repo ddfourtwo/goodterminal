@@ -94,11 +94,19 @@ install_fonts() {
             log_info "JetBrainsMono Nerd Font already installed"
         fi
     else
-        # Linux - install individual font files
-        install_linux_font "$jetbrains_base/JetBrainsMono/JetBrainsMonoNerdFont-Regular.ttf" "JetBrainsMonoNerdFont-Regular.ttf"
-        install_linux_font "$jetbrains_base/JetBrainsMono/JetBrainsMonoNerdFont-Bold.ttf" "JetBrainsMonoNerdFont-Bold.ttf"
-        install_linux_font "$jetbrains_base/JetBrainsMono/JetBrainsMonoNerdFont-Italic.ttf" "JetBrainsMonoNerdFont-Italic.ttf"
-        install_linux_font "$jetbrains_base/JetBrainsMono/JetBrainsMonoNerdFont-BoldItalic.ttf" "JetBrainsMonoNerdFont-BoldItalic.ttf"
+        # Linux - download and extract zip file
+        if [ ! -f "$FONT_DIR/JetBrainsMonoNerdFont-Regular.ttf" ]; then
+            log_info "Downloading JetBrainsMono Nerd Font..."
+            curl -fLo "$FONT_DIR/JetBrainsMono.zip" "$jetbrains_base/JetBrainsMono.zip"
+            
+            cd "$FONT_DIR"
+            log_info "Extracting font files..."
+            unzip -o JetBrainsMono.zip "*.ttf"
+            rm JetBrainsMono.zip
+            log_info "JetBrainsMono Nerd Font installed successfully"
+        else
+            log_info "JetBrainsMono Nerd Font already installed"
+        fi
         
         # Refresh font cache on Linux
         if command -v fc-cache &> /dev/null; then
