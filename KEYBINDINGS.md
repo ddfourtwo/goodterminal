@@ -1,48 +1,134 @@
-# GoodTerminal Keyboard Shortcuts
+# GoodTerminal Keybindings Cheat Sheet
 
-## Tmux (Terminal Multiplexer)
+## Leader Key
+- **Leader**: `<space>` (spacebar)
+- All `<leader>` commands start with pressing the spacebar
 
-**Prefix key: ` (backtick)**
+## Essential Navigation
 
-### Windows (Tabs)
+### Pane/Window Navigation (Works in nvim AND tmux!)
+- `Ctrl-h` - Move to left pane
+- `Ctrl-j` - Move to down pane
+- `Ctrl-k` - Move to up pane  
+- `Ctrl-l` - Move to right pane
+
+### Buffer Navigation
+- `Tab` - Next buffer
+- `Shift-Tab` - Previous buffer
+- `<space>1-9` - Jump to buffer 1-9
+- `<space>bn` - Next buffer
+- `<space>bp` - Previous buffer
+- `<space>bd` - Delete/close current buffer
+
+## File Management
+
+### File Tree
+- `<space>e` - Toggle file tree
+- In file tree:
+  - `Enter` - Open file
+  - `Ctrl-]` - Change root to folder
+  - `-` - Go up one directory
+  - Standard vim navigation (`h,j,k,l`)
+
+### Finding Files
+- `<space>ff` - Find files (fuzzy finder)
+- `<space>fg` - Find in files (live grep)
+- `<space>fb` - Find open buffers
+- `<space>fh` - Find help tags
+
+## Window Management
+
+### Creating Splits
+- `<space>v` - Vertical split
+- `<space>h` - Horizontal split
+
+### Resizing Windows
+- `Ctrl-Up` - Resize window up
+- `Ctrl-Down` - Resize window down
+- `Ctrl-Left` - Resize window left
+- `Ctrl-Right` - Resize window right
+
+### Window Commands
+- `<space>w` - Switch between windows
+- `<space>q` - Quit current window
+- `<space>x` - Save and quit current window
+- `<space>qa` - Quit all (preserves session)
+- `<space>xa` - Save and quit all (preserves session)
+
+## Coding Features
+
+### LSP (Language Server)
+- `gd` - Go to definition
+- `gr` - Go to references
+- `K` - Hover for documentation
+- `<space>ca` - Code actions
+- `<space>rn` - Rename symbol
+- `<space>f` - Format file
+
+### Git
+- `<space>gg` - Open LazyGit
+- `<space>gc` - LazyGit config
+
+### Comments
+- `gcc` - Toggle comment on current line
+- `gc` - Toggle comment (visual mode)
+- `gcO` - Add comment above
+- `gco` - Add comment below
+
+## Session Management
+- `<space>ss` - Save current session
+- `<space>sl` - Load session for current directory
+- `<space>sd` - Stop session recording
+- Sessions auto-save on exit and auto-restore when opening nvim
+
+## Other Useful Commands
+- `<space>nh` - Clear search highlighting
+
+---
+
+## Tmux Integration (when in tmux)
+
+### Tmux Prefix
+- **Prefix**: `` ` `` (backtick)
+
+### Essential Tmux Commands
+- `` ` c `` - New window
+- `` ` n `` - Next window
+- `` ` p `` - Previous window
+- `` ` d `` - Detach from session
+- `` ` s `` - List sessions
+- `` ` w `` - Workspace selector (TWM)
+- `` ` W `` - Workspace selector with layout picker
+- `` ` % `` - Split vertically
+- `` ` " `` - Split horizontally
+- `` ` [ `` - Enter copy mode
+- `` ` ] `` - Paste
+
+### Tmux Copy Mode
+1. Enter copy mode: `` ` [ ``
+2. Navigate with vim keys (`h,j,k,l`)
+3. Start selection: `v`
+4. Copy selection: `y`
+5. Exit copy mode: `q`
+6. Paste: `` ` ] ``
+
+### More Tmux Commands
 - `` ` t``: Create new window (tab)
-- `` ` n``: Next window
-- `` ` p``: Previous window
 - `` ` <number>``: Jump to window by number (e.g., `` ` 2``)
-- `` ` w``: List all windows
 - `` ` ,``: Rename current window
 - `` ` &``: Kill current window (will prompt)
 - `Shift+Left/Right`: Previous/next window (no prefix needed)
-- `Cmd+Right` (Mac): Next window (configure terminal to map Cmd to Alt)
-- `Cmd+Left` (Mac): Previous window (configure terminal to map Cmd to Alt)
-- `Cmd+T` (Mac): Create new window (configure terminal to map Cmd to Alt)
-- `Cmd+W` (Mac): Kill current window (configure terminal to map Cmd to Alt)
-
-### Panes (Splits)
 - `` ` |``: Split vertically (new pane on right)
 - `` ` -``: Split horizontally (new pane below)
-- `` ` %``: Alternative vertical split
-- `` ` "``: Alternative horizontal split
 - `` ` x``: Kill current pane (will prompt)
 - `` ` z``: Toggle pane zoom (fullscreen)
 - `` ` o``: Cycle through panes
 - `` ` ;``: Toggle between last two panes
 - `` ` q``: Show pane numbers
 - `` ` {`` or `` ` }``: Swap pane position
-
-### Navigation
-- `Ctrl-h/j/k/l`: Move between panes (seamless with vim!)
-- `Alt+Arrow keys`: Move between panes (no prefix)
-- `` ` h/j/k/l``: Move between panes (with prefix)
-
-### Sessions
-- `` ` d``: Detach from session
-- `` ` s``: List sessions
 - `` ` $``: Rename session
 - `` ` (``: Switch to previous session
 - `` ` )``: Switch to next session
-
-### Other Commands
 - `` ` r``: Reload tmux configuration
 - `` ` t``: Show clock
 - `` ` ?``: List all keybindings
@@ -50,54 +136,6 @@
 - `` ` U``: Update plugins
 - `` ` `` ` ``: Send literal backtick
 - `` ` Enter``: Send a newline in Claude Code
-
-## Neovim
-
-### General
-- `<Space>`: Leader key
-- `<leader>w`: Save file (Space + w)
-- `<leader>q`: Quit (Space + q)
-- `<leader>x`: Save and quit
-
-### File Navigation
-- `<leader>f`: Open file finder (fuzzy search)
-- `<leader>e`: Toggle file explorer
-- `<leader>b`: List open buffers
-- `<leader>h`: Search help
-- `[b` / `]b`: Previous/next buffer
-- `<leader>bd`: Close buffer
-
-### Code Navigation
-- `gd`: Go to definition
-- `gr`: Find references
-- `gi`: Go to implementation
-- `K`: Show hover documentation
-- `<leader>rn`: Rename symbol
-- `<leader>ca`: Code actions
-
-### Git Integration
-- `<leader>gg`: Open lazygit
-- `<leader>gh`: Preview git hunk
-- `<leader>gb`: Git blame
-- `[c` / `]c`: Previous/next git change
-
-### Search and Replace
-- `<leader>lg`: Live grep (search in files)
-- `<leader>fw`: Search current word
-- `<leader>ps`: Project search
-- `:%s/old/new/g`: Replace in file
-
-### AI Features
-- `Tab`: Accept AI suggestion
-- `Ctrl-e`: Dismiss AI suggestion
-- `:Codeium Auth`: Setup AI autocompletion
-
-### Window Management
-- `<leader>sv`: Split vertically
-- `<leader>sh`: Split horizontally
-- `<leader>se`: Make splits equal
-- `<leader>sx`: Close current split
-- `Ctrl-h/j/k/l`: Navigate between splits/panes
 
 ## Shell (Oh-My-Zsh)
 
@@ -121,9 +159,40 @@
 - `Alt+c`: Fuzzy search directories
 - `**<Tab>`: Trigger fuzzy completion
 
-## Tips
+---
 
-1. **Seamless Navigation**: `Ctrl-h/j/k/l` works across both tmux panes and neovim splits
-2. **Quick Commands**: Most commands in neovim use `<Space>` as the leader key
+## Tips & Quick Reference
+
+### Quick Workflow
+1. Open nvim in project folder
+2. `<space>e` to see file tree
+3. `<space>ff` to quickly find files
+4. `Tab`/`Shift-Tab` to switch between open files
+5. `<space>gg` for git operations
+6. `<space>qa` to quit and auto-save session
+
+### Navigation Flow
+- Use `Ctrl-h/j/k/l` to seamlessly move between:
+  - File tree and editor
+  - Multiple splits
+  - Even tmux panes (if using tmux)
+
+### Session Workflow
+- Just work normally - sessions auto-save on exit
+- Return to same folder and run `nvim` - everything restored!
+- Use `<space>ss` to manually save important states
+
+### VSCode Users Quick Reference
+If you're coming from VSCode, here's the equivalent commands:
+- `Cmd/Ctrl+P` → `<space>ff` (find files)
+- `Cmd/Ctrl+Shift+F` → `<space>fg` (search in files)
+- `Cmd/Ctrl+B` → `<space>e` (toggle sidebar/file tree)
+- `F12` → `gd` (go to definition)
+- `Shift+F12` → `gr` (find references)
+- `Cmd/Ctrl+.` → `<space>ca` (quick fix/code action)
+
+### Remember
+1. **Leader key = Spacebar**: All `<leader>` commands start with space
+2. **Seamless Navigation**: `Ctrl-h/j/k/l` works across both tmux panes and neovim splits
 3. **Prefix Alternative**: If backtick is hard to reach, you can change it in `~/.tmux.conf`
-4. **Learning**: Use `` ` ?`` in tmux and `:help` in neovim to explore more commands
+4. **Learning More**: Use `` ` ?`` in tmux and `:help` in neovim to explore more commands

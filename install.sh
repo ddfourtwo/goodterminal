@@ -776,6 +776,60 @@ configure_installations() {
     fi
 }
 
+# Update only Neovim configuration and plugins
+update_nvim_only() {
+    log_info "Updating Neovim configuration and plugins only..."
+    
+    # Update the repository first to get latest nvim configs
+    log_info "Updating GoodTerminal repository to get latest nvim configs..."
+    cd "$SCRIPT_DIR"
+    
+    # Check for uncommitted changes
+    if ! git diff-index --quiet HEAD --; then
+        log_warning "You have uncommitted changes. Stashing them..."
+        git stash
+        STASHED=true
+    fi
+    
+    # Pull latest changes
+    git pull origin main || git pull origin master || git pull
+    
+    # Restore stashed changes if any
+    if [ "$STASHED" = true ]; then
+        log_info "Restoring stashed changes..."
+        git stash pop
+    fi
+    
+    # Backup existing nvim configuration if it's not a symlink
+    if [ -e "$HOME/.config/nvim" ] && [ ! -L "$HOME/.config/nvim" ]; then
+        log_info "Backing up existing nvim configuration..."
+        mv "$HOME/.config/nvim" "$HOME/.config/nvim.backup-$(date +%Y%m%d-%H%M%S)"
+    fi
+    
+    # Set up Neovim configuration link
+    log_info "Setting up Neovim configuration..."
+    mkdir -p "$HOME/.config"
+    ln -sf "$SCRIPT_DIR/config/nvim" "$HOME/.config/nvim"
+    
+    # Update Neovim plugins
+    log_info "Updating Neovim plugins (this may take a moment)..."
+    
+    # Update/install plugins via Lazy.nvim without Windsurf auth
+    SKIP_WINDSURF_AUTH=1 nvim --headless "+Lazy! sync" +qa
+    
+    # Update TreeSitter parsers
+    log_info "Updating TreeSitter parsers..."
+    SKIP_WINDSURF_AUTH=1 nvim --headless "+TSUpdateSync" +qa
+    
+    # Update/install LSP servers via Mason
+    log_info "Updating LSP servers..."
+    SKIP_WINDSURF_AUTH=1 nvim --headless "+MasonInstall lua-language-server pyright typescript-language-server bash-language-server" +qa
+    SKIP_WINDSURF_AUTH=1 nvim --headless "+MasonUpdate" +qa
+    
+    log_info "Neovim configuration and plugin updates completed!"
+    log_info "Please restart any open nvim sessions to apply changes."
+}
+
 # Update plugins
 update_plugins() {
     log_info "Updating plugins..."
@@ -1138,9 +1192,10 @@ show_menu() {
     echo "4) Update everything (configs, plugins, and packages)"
     echo "5) Check health status"
     echo "6) Purge and reinstall (clean slate)"
-    echo "7) Exit"
+    echo "7) Update Neovim configs and plugins only"
+    echo "8) Exit"
     echo
-    log_prompt "Select an option (1-7): "
+    log_prompt "Select an option (1-8): "
 }
 
 # Main function
@@ -1183,11 +1238,15 @@ main() {
                     break
                     ;;
                 7)
+                    update_nvim_only
+                    break
+                    ;;
+                8)
                     log_info "Exiting..."
                     exit 0
                     ;;
                 *)
-                    log_error "Invalid option. Please select 1-7."
+                    log_error "Invalid option. Please select 1-8."
                     ;;
             esac
         done
@@ -1214,6 +1273,9 @@ main() {
                 update_plugins
                 check_health
                 ;;
+            --update-nvim|-n)
+                update_nvim_only
+                ;;
             --health|-h)
                 check_health
                 ;;
@@ -1232,6 +1294,7 @@ main() {
                 echo "  --update, -u         Update configurations and plugins"
                 echo "  --update-packages, -p Update system packages only"
                 echo "  --update-all, -a     Update everything"
+                echo "  --update-nvim, -n    Update Neovim configs and plugins only"
                 echo "  --health, -h         Check health status"
                 echo "  --purge              Purge and reinstall (clean slate)"
                 echo

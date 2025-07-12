@@ -44,6 +44,9 @@ vim.opt.splitright = true              -- Split to the right
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+-- Set default shell to zsh
+vim.opt.shell = '/bin/zsh'
+
 -- Plugin setup with Lazy.nvim
 require("lazy").setup({
   -- Seamless tmux/vim navigation
@@ -258,8 +261,8 @@ require("lazy").setup({
           ['<C-Space>'] = cmp.mapping.complete(),
           ['<C-e>'] = cmp.mapping.abort(),
           ['<CR>'] = cmp.mapping.confirm({ select = true }),
-          ['<Tab>'] = cmp.mapping.select_next_item(),
-          ['<S-Tab>'] = cmp.mapping.select_prev_item(),
+          ['<C-n>'] = cmp.mapping.select_next_item(),
+          ['<C-p>'] = cmp.mapping.select_prev_item(),
         }),
         sources = cmp.config.sources({
           { name = 'nvim_lsp' },
@@ -332,6 +335,34 @@ require("lazy").setup({
       return vim.env.SKIP_WINDSURF_AUTH ~= "1"
     end,
   },
+  
+  -- Session persistence
+  {
+    'folke/persistence.nvim',
+    event = 'BufReadPre',
+    opts = {
+      dir = vim.fn.stdpath("state") .. "/sessions/", -- directory where session files are saved
+      options = { "buffers", "curdir", "tabpages", "winsize" }, -- sessionoptions used for saving
+      pre_save = nil, -- a function to call before saving the session
+      save_empty = false, -- don't save if there are no open file buffers
+    },
+    config = function(_, opts)
+      require("persistence").setup(opts)
+      
+      -- Auto-restore session when entering nvim without arguments
+      vim.api.nvim_create_autocmd("VimEnter", {
+        group = vim.api.nvim_create_augroup("persistence_auto_restore", { clear = true }),
+        callback = function()
+          -- Only restore if nvim was started without arguments and not in a git commit
+          if vim.fn.argc() == 0 and not vim.env.GIT_INDEX_FILE then
+            require("persistence").load()
+          end
+        end,
+        nested = true,
+      })
+    end,
+  },
+  
 })
 
 -- Keybindings
@@ -346,6 +377,8 @@ map('n', '<leader>ff', ':Telescope find_files<CR>', opts)
 map('n', '<leader>fg', ':Telescope live_grep<CR>', opts)
 map('n', '<leader>fb', ':Telescope buffers<CR>', opts)
 map('n', '<leader>fh', ':Telescope help_tags<CR>', opts)
+-- Fixed string search (no regex, treats all characters literally)
+map('n', '<leader>fs', [[:lua require("telescope.builtin").live_grep({ additional_args = function() return {"--fixed-strings"} end, prompt_title = "Literal Search" })<CR>]], opts)
 
 -- Split navigation - works with vim-tmux-navigator
 map('n', '<C-h>', '<C-w>h', opts)
@@ -355,7 +388,7 @@ map('n', '<C-l>', '<C-w>l', opts)
 
 -- Split creation
 map('n', '<leader>v', ':vsplit<CR>', opts)
-map('n', '<leader>s', ':split<CR>', opts)
+map('n', '<leader>h', ':split<CR>', opts)
 
 -- Window resizing
 map('n', '<C-Up>', ':resize -2<CR>', opts)
@@ -367,6 +400,10 @@ map('n', '<C-Right>', ':vertical resize +2<CR>', opts)
 map('n', '<leader>w', '<C-w>w', opts)
 map('n', '<leader>q', ':q<CR>', opts)
 map('n', '<leader>x', ':x<CR>', opts)
+
+-- Quit all and preserve session
+map('n', '<leader>qa', ':qa<CR>', opts)
+map('n', '<leader>xa', ':xa<CR>', opts)
 
 -- Buffer navigation
 map('n', '<leader>bn', ':bnext<CR>', opts)
@@ -400,6 +437,20 @@ map('n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
 map('n', '<leader>ca', '<Cmd>lua vim.lsp.buf.code_action()<CR>', opts)
 map('n', '<leader>rn', '<Cmd>lua vim.lsp.buf.rename()<CR>', opts)
 map('n', '<leader>f', '<Cmd>lua vim.lsp.buf.format()<CR>', opts)
+
+-- Session management
+map('n', '<leader>ss', '<Cmd>lua require("persistence").save()<CR>', opts)
+map('n', '<leader>sl', '<Cmd>lua require("persistence").load()<CR>', opts)
+map('n', '<leader>sd', '<Cmd>lua require("persistence").stop()<CR>', opts)
+
+-- Terminal
+map('n', '<leader>tt', ':terminal<CR>', opts)
+map('n', '<leader>th', ':split term://zsh<CR>', opts)
+map('n', '<leader>tv', ':vsplit term://zsh<CR>', opts)
+map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
+map('t', '<C-j>', '<C-\\><C-n><C-w>j', opts)
+map('t', '<C-k>', '<C-\\><C-n><C-w>k', opts)
+map('t', '<C-l>', '<C-\\><C-n><C-w>l', opts)
 
 -- Auto-open nvim-tree when starting nvim
 vim.api.nvim_create_autocmd("VimEnter", {
