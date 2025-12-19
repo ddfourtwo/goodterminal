@@ -130,6 +130,7 @@
 - `` ` (``: Switch to previous session
 - `` ` )``: Switch to next session
 - `` ` r``: Reload tmux configuration
+- `` ` M``: Toggle mouse mode (useful for nested tmux sessions)
 - `` ` t``: Show clock
 - `` ` ?``: List all keybindings
 - `` ` I``: Install plugins (via TPM)
