@@ -32,10 +32,6 @@ export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
 # zsh-interactive-cd will handle directory listing for cd command
 
-# User configuration
-export EDITOR='nvim'
-export VISUAL='nvim'
-
 # Aliases
 alias v='nvim'
 alias vi='nvim'

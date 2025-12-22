@@ -235,6 +235,107 @@ if [ -f ~/.shell_local ]; then
     source ~/.shell_local
 fi
 
+# =============================================================================
+# Development Tools PATH Setup
+# These must be loaded AFTER oh-my-zsh to ensure PATH is properly set
+# =============================================================================
+
+# Homebrew (macOS)
+if [ -f /opt/homebrew/bin/brew ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -f /usr/local/bin/brew ]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+# Go
+if [ -d "$HOME/go" ]; then
+    export GOPATH="$HOME/go"
+    export PATH="$GOPATH/bin:$PATH"
+fi
+if [ -d "/usr/local/go/bin" ]; then
+    export PATH="/usr/local/go/bin:$PATH"
+fi
+# Homebrew Go on macOS
+if [ -d "/opt/homebrew/opt/go/bin" ]; then
+    export PATH="/opt/homebrew/opt/go/bin:$PATH"
+fi
+
+# Rust/Cargo
+if [ -f "$HOME/.cargo/env" ]; then
+    source "$HOME/.cargo/env"
+elif [ -d "$HOME/.cargo/bin" ]; then
+    export PATH="$HOME/.cargo/bin:$PATH"
+fi
+
+# NVM (Node Version Manager)
+export NVM_DIR="$HOME/.nvm"
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+    source "$NVM_DIR/nvm.sh"
+fi
+if [ -s "$NVM_DIR/bash_completion" ]; then
+    source "$NVM_DIR/bash_completion"
+fi
+# Homebrew NVM
+if [ -s "/opt/homebrew/opt/nvm/nvm.sh" ]; then
+    source "/opt/homebrew/opt/nvm/nvm.sh"
+fi
+
+# fnm (Fast Node Manager) - alternative to nvm
+if command -v fnm &> /dev/null; then
+    eval "$(fnm env)"
+fi
+
+# pyenv (Python version manager)
+if [ -d "$HOME/.pyenv" ]; then
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    if command -v pyenv &> /dev/null; then
+        eval "$(pyenv init -)"
+    fi
+fi
+
+# rbenv (Ruby version manager)
+if [ -d "$HOME/.rbenv" ]; then
+    export PATH="$HOME/.rbenv/bin:$PATH"
+    if command -v rbenv &> /dev/null; then
+        eval "$(rbenv init -)"
+    fi
+fi
+
+# Claude Code CLI
+if [ -d "$HOME/.claude/bin" ]; then
+    export PATH="$HOME/.claude/bin:$PATH"
+fi
+
+# Bun
+if [ -d "$HOME/.bun" ]; then
+    export BUN_INSTALL="$HOME/.bun"
+    export PATH="$BUN_INSTALL/bin:$PATH"
+fi
+
+# pnpm
+if [ -d "$HOME/.local/share/pnpm" ]; then
+    export PNPM_HOME="$HOME/.local/share/pnpm"
+    export PATH="$PNPM_HOME:$PATH"
+fi
+
+# Deno
+if [ -d "$HOME/.deno" ]; then
+    export DENO_INSTALL="$HOME/.deno"
+    export PATH="$DENO_INSTALL/bin:$PATH"
+fi
+
+# Local bin directories
+if [ -d "$HOME/.local/bin" ]; then
+    export PATH="$HOME/.local/bin:$PATH"
+fi
+if [ -d "$HOME/bin" ]; then
+    export PATH="$HOME/bin:$PATH"
+fi
+
+# Set default editor
+export EDITOR='nvim'
+export VISUAL='nvim'
 
 # Better ls colors
 export LS_COLORS='di=34:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30'
