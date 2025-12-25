@@ -520,6 +520,146 @@ install_twm() {
     fi
 }
 
+# Install Go
+install_go() {
+    if command -v go &> /dev/null; then
+        log_info "Go already installed: $(go version)"
+        return 0
+    fi
+
+    log_info "Installing Go..."
+
+    # Determine latest stable Go version and architecture
+    local GO_VERSION="1.23.4"  # Update periodically or fetch dynamically
+    local ARCH=""
+    local PLATFORM=""
+
+    case "$(uname -m)" in
+        x86_64)  ARCH="amd64" ;;
+        aarch64|arm64) ARCH="arm64" ;;
+        armv7l) ARCH="armv6l" ;;
+        *)
+            log_error "Unsupported architecture: $(uname -m)"
+            return 1
+            ;;
+    esac
+
+    case "$OS" in
+        macos)
+            PLATFORM="darwin"
+            # On macOS, prefer Homebrew
+            if command -v brew &> /dev/null; then
+                log_info "Installing Go via Homebrew..."
+                brew install go
+                log_info "Go installed: $(go version)"
+                return 0
+            fi
+            ;;
+        debian|rhel|arch)
+            PLATFORM="linux"
+            ;;
+        *)
+            log_error "Unsupported OS: $OS"
+            return 1
+            ;;
+    esac
+
+    # Download and install Go from official release
+    local GO_TAR="go${GO_VERSION}.${PLATFORM}-${ARCH}.tar.gz"
+    local GO_URL="https://go.dev/dl/${GO_TAR}"
+
+    log_info "Downloading Go ${GO_VERSION} for ${PLATFORM}/${ARCH}..."
+
+    cd /tmp
+    curl -LO "$GO_URL"
+
+    # Remove old installation if exists
+    sudo rm -rf /usr/local/go
+
+    # Extract to /usr/local
+    sudo tar -C /usr/local -xzf "$GO_TAR"
+    rm "$GO_TAR"
+
+    # Set up Go environment
+    export PATH="/usr/local/go/bin:$PATH"
+    export GOPATH="$HOME/go"
+    mkdir -p "$GOPATH/bin"
+
+    log_info "Go installed: $(go version)"
+}
+
+# Install Node.js via NVM
+install_node() {
+    log_info "Setting up Node.js via NVM..."
+
+    export NVM_DIR="$HOME/.nvm"
+
+    # Install NVM if not present
+    if [ ! -d "$NVM_DIR" ]; then
+        log_info "Installing NVM (Node Version Manager)..."
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+    else
+        log_info "NVM already installed"
+    fi
+
+    # Source NVM
+    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+
+    # Check if Node is already installed
+    if command -v node &> /dev/null; then
+        log_info "Node.js already installed: $(node --version)"
+    else
+        # Install latest LTS version of Node
+        log_info "Installing Node.js LTS..."
+        nvm install --lts
+        nvm use --lts
+        nvm alias default 'lts/*'
+        log_info "Node.js installed: $(node --version)"
+    fi
+
+    # Ensure npm is up to date
+    if command -v npm &> /dev/null; then
+        log_info "npm version: $(npm --version)"
+    fi
+}
+
+# Install Claude Code CLI
+install_claude() {
+    log_info "Setting up Claude Code CLI..."
+
+    # Check if already installed
+    if command -v claude &> /dev/null; then
+        log_info "Claude Code already installed: $(claude --version 2>/dev/null || echo 'version unknown')"
+        return 0
+    fi
+
+    # Claude Code requires npm
+    if ! command -v npm &> /dev/null; then
+        log_warning "npm not found. Installing Node.js first..."
+        install_node
+
+        # Re-source NVM to get npm
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+    fi
+
+    if command -v npm &> /dev/null; then
+        log_info "Installing Claude Code CLI via npm..."
+        npm install -g @anthropic-ai/claude-code
+
+        if command -v claude &> /dev/null; then
+            log_info "Claude Code CLI installed successfully"
+            log_info "Run 'claude auth' to authenticate after installation completes"
+        else
+            log_warning "Claude Code CLI installation may have failed"
+            log_info "You can manually install later with: npm install -g @anthropic-ai/claude-code"
+        fi
+    else
+        log_warning "npm still not available. Skipping Claude Code installation."
+        log_info "Install Node.js manually, then run: npm install -g @anthropic-ai/claude-code"
+    fi
+}
+
 # Configure SSH for OSC 52 clipboard support
 configure_ssh_osc52() {
     log_info "Configuring SSH for OSC 52 clipboard support..."
@@ -1008,11 +1148,25 @@ check_health() {
     
     # Check Claude Code
     if command -v claude &> /dev/null; then
-        log_info "Claude Code version: $(claude --version)"
+        log_info "Claude Code version: $(claude --version 2>/dev/null || echo 'installed')"
     else
         log_warning "Claude Code not found"
     fi
-    
+
+    # Check Go
+    if command -v go &> /dev/null; then
+        log_info "Go version: $(go version | sed 's/go version //')"
+    else
+        log_warning "Go not found"
+    fi
+
+    # Check Rust
+    if command -v rustc &> /dev/null; then
+        log_info "Rust version: $(rustc --version)"
+    else
+        log_warning "Rust not found"
+    fi
+
     # AI tools reminder
     log_info ""
     log_info "AI Tools setup:"
@@ -1030,6 +1184,11 @@ full_install() {
     install_mosh
     install_tmux
     install_nvim
+    install_rust
+    install_twm
+    install_go
+    install_node
+    install_claude
     configure_installations
     update_plugins
     check_health
@@ -1224,6 +1383,12 @@ main() {
                 4)
                     update_repo
                     update_packages
+                    # Ensure development tools are installed
+                    install_rust
+                    install_twm
+                    install_go
+                    install_node
+                    install_claude
                     configure_installations
                     update_plugins
                     check_health
@@ -1265,10 +1430,12 @@ main() {
             --update-all|-a)
                 update_repo
                 update_packages
-                # Ensure Rust is installed for TWM
+                # Ensure development tools are installed
                 install_rust
-                # Ensure TWM is installed
                 install_twm
+                install_go
+                install_node
+                install_claude
                 configure_installations
                 update_plugins
                 check_health
