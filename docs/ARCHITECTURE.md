@@ -196,18 +196,18 @@ flowchart TD
     AutoRestore -->|Yes| RestoreSession[Restore session.vim per directory]
     AutoRestore -->|No| ManualRestore[Space+qs to restore]
 
-    Tool -->|Tmux| TWM[Tmux Workspace Manager]
-    TWM --> ProjectBased[Project-based sessions]
-    ProjectBased --> ConfigFile[.twm.conf in project root]
+    Tool -->|Tmux| TmuxSessions[Native Tmux Sessions]
+    TmuxSessions --> NamedSessions[Named sessions per project]
+    NamedSessions --> DetachAttach[Detach/Attach workflow]
 
     Tool -->|Shell| History[Command History]
     History --> FZFIntegration[fzf + Ctrl+r]
 ```
 
 **Key Decisions**:
-- **Removed tmux-resurrect/continuum**: Too heavyweight, conflicts with TWM
+- **Removed tmux-resurrect/continuum**: Too heavyweight for simple session needs
 - **persistence.nvim**: Lightweight, per-directory sessions
-- **TWM for tmux**: Project-aware session management
+- **Native tmux sessions**: Simple named sessions for project management
 
 ### 5. Clipboard Handling
 
@@ -388,8 +388,8 @@ sequenceDiagram
 
     Dev->>Neovim: :wqa
     Neovim->>Neovim: Save session
-    Dev->>Shell: exit
-    Tmux->>TWM: Save workspace state
+    Dev->>Tmux: prefix + d (detach)
+    Tmux->>Tmux: Session preserved
 ```
 
 ## Key Technical Decisions
@@ -460,13 +460,13 @@ ln -sf "$GOODTERMINAL_DIR/config/tmux/tmux.conf" ~/.tmux.conf
 
 **Decision**: Removed tmux-resurrect and tmux-continuum plugins.
 
-**Rationale** (from recent commits):
-- Conflicts with TWM (Tmux Workspace Manager)
+**Rationale**:
+- Native tmux sessions are sufficient for most use cases
 - persistence.nvim handles neovim sessions better
 - Simpler mental model: one tool per job
 - Reduces plugin complexity
 
-**Current State**: Using TWM + persistence.nvim instead.
+**Current State**: Using native tmux sessions + persistence.nvim.
 
 ### 6. OSC 52 Clipboard (Currently Disabled)
 
@@ -491,18 +491,6 @@ ln -sf "$GOODTERMINAL_DIR/config/tmux/tmux.conf" ~/.tmux.conf
 - Balance between features and performance
 
 **Not Using**: Frameworks like Prezto, zim, or antibody (oh-my-zsh is ubiquitous).
-
-### 8. TWM for Project Management
-
-**Decision**: Integrate TWM (Tmux Workspace Manager) for project-based sessions.
-
-**Rationale**:
-- Developers work on multiple projects
-- Each project needs its own layout
-- `.twm.conf` files in project roots define layouts
-- Complements tmux sessions nicely
-
-**Implementation**: Compiled from Rust source, bound to prefix+P.
 
 ## Security Considerations
 
@@ -600,7 +588,6 @@ These are **not** overwritten by updates.
 - [ ] Clipboard works in Mosh
 - [ ] LSP autocomplete works
 - [ ] Session persistence works
-- [ ] TWM project switching works
 - [ ] All keybindings responsive
 
 ### Automated Testing
@@ -637,7 +624,6 @@ YAML/JSON config to define tool versions and plugins instead of bash script.
 - [Lazy.nvim Documentation](https://github.com/folke/lazy.nvim)
 - [TPM Documentation](https://github.com/tmux-plugins/tpm)
 - [vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator)
-- [TWM (Tmux Workspace Manager)](https://github.com/vinnymeller/twm)
 - [Mosh Documentation](https://mosh.org/)
 
 ---

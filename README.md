@@ -89,9 +89,8 @@ For detailed information on session management, see [Session Management](docs/se
 ### Tmux Configuration
 - Mouse support
 - Intuitive pane/window management
-- Session persistence via TWM (Tmux Workspace Manager)
+- Persistent sessions (detach with `` ` d ``, reattach with `tmux attach`)
 - Modern Dracula theme with system monitoring
-- Project-specific workspace layouts with .twm.yaml
 - Prefix key: ` (backtick)
 
 ### Mosh Configuration
@@ -267,7 +266,6 @@ Here are all the tools included in GoodTerminal with links to their repositories
 ### Additional Tools
 - [lazygit](https://github.com/jesseduffield/lazygit) - Terminal UI for git
 - [ripgrep](https://github.com/BurntSushi/ripgrep) - Fast text search
-- [TWM](https://github.com/vinnymeller/twm) - Tmux Workspace Manager for project sessions
 - [Claude Code](https://github.com/anthropics/claude-code) - Anthropic's official CLI for Claude
 
 ## 🤝 Contributing

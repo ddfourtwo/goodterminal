@@ -97,8 +97,6 @@
 - `` ` p `` - Previous window
 - `` ` d `` - Detach from session
 - `` ` s `` - List sessions
-- `` ` w `` - Workspace selector (TWM)
-- `` ` W `` - Workspace selector with layout picker
 - `` ` % `` - Split vertically
 - `` ` " `` - Split horizontally
 - `` ` [ `` - Enter copy mode

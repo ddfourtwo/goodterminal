@@ -2,24 +2,24 @@
 
 GoodTerminal includes powerful session management for both tmux and Neovim, allowing you to seamlessly resume your work exactly where you left off.
 
-## Tmux Session Management with TWM
+## Tmux Session Management
 
-[TWM (Tmux Workspace Manager)](https://github.com/vinnymeller/twm) manages tmux workspaces based on project directories, making it easy to organize and restore your terminal environment.
+Tmux provides built-in session persistence - your sessions remain active even after you disconnect from the server.
 
 ### Key Features
 
-- Project directory detection based on configurable patterns
-- Quick switching between workspaces via interactive picker
-- Customizable layouts for different project types
-- Project-specific configurations
+- Sessions persist in the background when you detach
+- Multiple named sessions for different projects
+- Easy session switching and management
+- Sessions survive SSH disconnections
 
 ### Keybindings
 
-GoodTerminal sets up the following tmux keybindings for TWM:
+GoodTerminal sets up the following tmux keybindings:
 
-- **`` ` w ``**: Open the TWM workspace picker
-- **`` ` W ``**: Open TWM and select a layout
-- **`` ` T ``**: Attach to existing tmux sessions
+- **`` ` d ``**: Detach from current session (session continues in background)
+- **`` ` s ``**: List and switch between sessions
+- **`` ` $ ``**: Rename current session
 
 ### How to Quit Tmux While Preserving Sessions
 
@@ -30,36 +30,40 @@ To detach from tmux (preserving your session):
 
 Your session will remain active in the background. When you want to reconnect:
 
-- Use `twm -e` to see and select existing sessions
-- Or use `` ` T `` from within tmux
-- Or use `tmux attach` to connect to the last session
-- Or use `tmux attach -t session_name` to connect to a specific session
+- Use `tmux ls` to list all sessions
+- Use `tmux attach` to connect to the last session
+- Use `tmux attach -t session_name` to connect to a specific session
 
-### Project-Specific Configuration
+### Creating Named Sessions
 
-You can create a `.twm.yaml` file in your project directory to set up a custom workspace whenever you open that project:
+Create a session with a name for easy identification:
 
-```yaml
-# Example .twm.yaml for a web project
-layout: "custom"
-
-layouts:
-  custom:
-    # Main editor window
-    - name: "editor"
-      command: "nvim"
-    # Server window that runs a development server
-    - name: "server"
-      command: "npm start"
-    # Test window for running tests
-    - name: "tests"
-      command: "echo 'Run tests with: npm test'"
-
-env:
-  NODE_ENV: "development"
+```bash
+tmux new -s myproject
 ```
 
-When you navigate to this project using TWM, it will automatically set up your tmux session with these windows and commands.
+This creates a session named "myproject" that you can later attach to with:
+
+```bash
+tmux attach -t myproject
+```
+
+### Managing Multiple Projects
+
+For multiple projects, create separate named sessions:
+
+```bash
+# Create sessions for different projects
+tmux new -s frontend -d    # -d creates in detached mode
+tmux new -s backend -d
+tmux new -s docs -d
+
+# List all sessions
+tmux ls
+
+# Attach to a specific session
+tmux attach -t frontend
+```
 
 ## Neovim Session Management
 
@@ -99,9 +103,9 @@ If you want to start a fresh session without loading the saved one, use `nvim --
 
 ## Using Both Together
 
-The combination of TWM and persistence.nvim creates a powerful workflow:
+The combination of tmux sessions and persistence.nvim creates a powerful workflow:
 
-1. Use TWM to organize and manage your tmux sessions by project
+1. Use tmux named sessions to organize your terminal sessions by project
 2. Use persistence.nvim to automatically save and restore your Neovim state within each project
 3. Move between projects seamlessly while maintaining your complete environment
 

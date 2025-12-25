@@ -28,7 +28,6 @@ New to GoodTerminal? Start here:
   - `lazygit/` - LazyGit configuration
   - `fonts/` - Font installation scripts
   - `iterm2/` - iTerm2 settings
-  - `twm/` - Tmux Workspace Manager config
 
 ### Development
 

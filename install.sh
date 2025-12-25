@@ -186,9 +186,6 @@ install_dependencies() {
     
     # Install Rust/Cargo if not already installed
     install_rust
-    
-    # Install TWM (Tmux Workspace Manager)
-    install_twm
 }
 
 # Install mosh
@@ -470,53 +467,6 @@ install_rust() {
         log_info "Rust installed: $(rustc --version)"
     else
         log_info "Rust already installed: $(rustc --version)"
-    fi
-}
-
-# Install TWM (Tmux Workspace Manager)
-install_twm() {
-    log_info "Installing TWM (Tmux Workspace Manager)..."
-    
-    # Ensure Rust/Cargo is in PATH
-    if [ -f "$HOME/.cargo/env" ]; then
-        source "$HOME/.cargo/env"
-    fi
-    
-    if ! command -v twm &> /dev/null; then
-        if command -v cargo &> /dev/null; then
-            log_info "Installing TWM via cargo..."
-            cargo install twm
-            log_info "TWM installed: $(twm --version 2>&1 | head -n1)"
-        else
-            log_error "Cargo not found. TWM requires Rust/Cargo to be installed."
-            log_info "Installing Rust/Cargo first..."
-            install_rust
-            
-            # Source cargo environment again
-            if [ -f "$HOME/.cargo/env" ]; then
-                source "$HOME/.cargo/env"
-            fi
-            
-            if command -v cargo &> /dev/null; then
-                log_info "Installing TWM via cargo..."
-                cargo install twm
-                log_info "TWM installed: $(twm --version 2>&1 | head -n1)"
-            else
-                log_error "Failed to install Rust/Cargo. TWM installation failed."
-                exit 1
-            fi
-        fi
-    else
-        log_info "TWM already installed: $(twm --version 2>&1 | head -n1)"
-    fi
-    
-    # Create TWM configuration directory
-    mkdir -p "$HOME/.config/twm"
-    
-    # Link TWM configuration
-    if [ ! -f "$HOME/.config/twm/twm.yaml" ]; then
-        log_info "Setting up TWM configuration..."
-        ln -sf "$SCRIPT_DIR/config/twm/twm.yaml" "$HOME/.config/twm/twm.yaml"
     fi
 }
 
@@ -1080,14 +1030,6 @@ check_health() {
         log_warning "Tmux not found"
     fi
     
-    # Check TWM
-    if command -v twm &> /dev/null; then
-        log_info "TWM (Tmux Workspace Manager) installed: $(twm --version 2>&1 | head -n1)"
-    else
-        log_error "TWM not found - this is required for GoodTerminal"
-        log_info "Run './install.sh --install' or './install.sh --update-all' to install TWM"
-    fi
-    
     # Check clipboard utilities for tmux-yank
     local clipboard_found=false
     if command -v xclip &> /dev/null; then
@@ -1185,7 +1127,6 @@ full_install() {
     install_tmux
     install_nvim
     install_rust
-    install_twm
     install_go
     install_node
     install_claude
@@ -1202,11 +1143,10 @@ full_install() {
     log_info "Please restart your shell to apply configurations."
     log_info "For tmux, you may need to press prefix + I (\` + I) to install plugins on first run."
     log_info ""
-    log_info "TMux Workspace Manager (TWM) Usage:"
-    log_info "- Press \` then w to open workspace selector"
-    log_info "- Press \` then W to open workspace selector with layout picker"
-    log_info "- Press \` then T to select existing sessions"
+    log_info "Tmux Session Tips:"
     log_info "- To detach from tmux (preserving session): \` then d"
+    log_info "- To list sessions: tmux ls"
+    log_info "- To attach to a session: tmux attach -t <session>"
     log_info ""
     log_info "IMPORTANT - AI Tools Setup:"
     log_info "1. For AI autocompletion in Neovim:"
@@ -1227,12 +1167,7 @@ update_only() {
     
     # Check and install missing clipboard utilities
     check_and_install_clipboard_utils
-    
-    # Ensure Rust is installed for TWM
-    install_rust
-    # Ensure TWM is installed
-    install_twm
-    
+
     configure_installations
     update_plugins
     check_health
@@ -1385,7 +1320,6 @@ main() {
                     update_packages
                     # Ensure development tools are installed
                     install_rust
-                    install_twm
                     install_go
                     install_node
                     install_claude
@@ -1432,7 +1366,6 @@ main() {
                 update_packages
                 # Ensure development tools are installed
                 install_rust
-                install_twm
                 install_go
                 install_node
                 install_claude
